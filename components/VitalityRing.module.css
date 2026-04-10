@@ -1,0 +1,52 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.svg {
+  overflow: visible;
+}
+
+.arc {
+  transition: stroke-dasharray 0.8s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.6s ease;
+}
+
+.ambientPulse {
+  animation: ambientPulse 3s ease-in-out infinite;
+}
+
+@keyframes ambientPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+.scoreText {
+  font-family: inherit;
+  font-size: 26px;
+  font-weight: 800;
+  transition: fill 0.6s ease;
+}
+
+.labelText {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.eaText {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.caption {
+  margin: 0;
+  font-size: 11px;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}

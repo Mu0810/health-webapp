@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id             String      @id @default(cuid())
+  name           String?
+  vitalityScore  Float       @default(10.0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  biometrics     Biometric[]
+  foods          FoodLog[]
+}
+
+model Biometric {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  glucose    Float?   // in mg/dL
+  hrv        Float?   // Heart Rate Variability in ms
+  activeBurn Float?   // Active Energy Burned in kcal
+  timestamp  DateTime @default(now())
+}
+
+model FoodLog {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  name           String
+  calories       Float
+  protein        Float
+  carbs          Float
+  fats           Float
+  glycemicIndex  Float?
+  imageUrl       String?
+  timestamp      DateTime @default(now())
+}
