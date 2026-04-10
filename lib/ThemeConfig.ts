@@ -82,7 +82,14 @@ export function getVitalityStatus(score: number): EAStatus {
   return "red";
 }
 
-export const StatusColor: Record<EAStatus, (typeof Colors)["green"]> = {
+export interface ColorSwatch {
+  readonly primary: string;
+  readonly glow: string;
+  readonly bg: string;
+  readonly text: string;
+}
+
+export const StatusColor: Record<EAStatus, ColorSwatch> = {
   green: Colors.green,
   amber: Colors.amber,
   red: Colors.red,
