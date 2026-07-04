@@ -126,13 +126,13 @@ export default function VisionLogger({ onFoodLogged }: Props) {
           {phase === "scanning" && (
             <div className={styles.scanOverlay}>
               <div className={styles.laserBeam} />
-              <div className={styles.scanText}>Analysing with AI vision…</div>
+              <div className={styles.scanText} role="status">Analysing with AI vision…</div>
             </div>
           )}
         </div>
       )}
 
-      {error && <p className={styles.error}>⚠ {error}</p>}
+      {error && <p className={styles.error} role="alert">⚠ {error}</p>}
 
       {phase === "result" && result && (
         <div className={styles.result}>

@@ -42,7 +42,8 @@ export const Colors = {
   // Text
   textPrimary: "#f1f5f9",
   textSecondary: "#94a3b8",
-  textMuted: "#475569",
+  // Raised from #475569 (~2.5:1) to meet WCAG 1.4.3 contrast on the dark bg.
+  textMuted: "#8b97ab",
 } as const;
 
 export const Glass = {

@@ -6,6 +6,7 @@
 "use client";
 
 import { useState } from "react";
+import { calcProfile } from "@/lib/nutrition";
 import styles from "./PersonalProfile.module.css";
 
 export type ActivityLevel = "sedentary" | "light" | "moderate" | "active" | "very_active";
@@ -46,14 +47,6 @@ const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
   very_active: "Very Active (2× per day)",
 };
 
-const ACTIVITY_MULTIPLIER: Record<ActivityLevel, number> = {
-  sedentary:   1.2,
-  light:       1.375,
-  moderate:    1.55,
-  active:      1.725,
-  very_active: 1.9,
-};
-
 const GOAL_LABELS: Record<Goal, string> = {
   lose:     "🔥 Lose Fat",
   maintain: "⚖️ Maintain",
@@ -68,59 +61,6 @@ const DIET_LABELS: Record<DietType, string> = {
   mediterranean: "🫒 Mediterranean",
   paleo:         "🍖 Paleo",
 };
-
-function calcProfile(form: {
-  name: string; age: number; gender: Gender; weightKg: number; heightCm: number;
-  activityLevel: ActivityLevel; goal: Goal; dietType: DietType;
-}): UserProfile {
-  const { age, gender, weightKg, heightCm, activityLevel, goal } = form;
-
-  // BMI
-  const heightM = heightCm / 100;
-  const bmi = Math.round((weightKg / (heightM * heightM)) * 10) / 10;
-
-  // BMR — Mifflin-St Jeor
-  const bmr = gender === "male"
-    ? 10 * weightKg + 6.25 * heightCm - 5 * age + 5
-    : 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
-
-  // TDEE
-  const tdee = Math.round(bmr * ACTIVITY_MULTIPLIER[activityLevel]);
-
-  // Target calories by goal
-  const calAdj = goal === "lose" ? -500 : goal === "gain" ? 300 : 0;
-  const targetCalories = Math.round(tdee + calAdj);
-
-  // Fat-free mass estimate (rough: 75-85% of body weight depending on gender)
-  const fatPct = gender === "male" ? 0.18 : 0.25;
-  const ffm = Math.round((weightKg * (1 - fatPct)) * 10) / 10;
-
-  // Macros
-  // Protein: 2g/kg FFM for muscle, 1.8g for maintain, 1.6g for lose
-  const proteinPerKg = goal === "gain" ? 2.0 : goal === "maintain" ? 1.8 : 1.6;
-  const targetProtein = Math.round(ffm * proteinPerKg);
-  const proteinCal = targetProtein * 4;
-
-  // Fat: 25% of target calories
-  const fatCal = Math.round(targetCalories * 0.25);
-  const targetFats = Math.round(fatCal / 9);
-
-  // Carbs: remainder
-  const carbCal = targetCalories - proteinCal - fatCal;
-  const targetCarbs = Math.round(Math.max(0, carbCal) / 4);
-
-  return {
-    ...form,
-    bmi,
-    bmr: Math.round(bmr),
-    tdee,
-    targetCalories,
-    targetProtein,
-    targetCarbs,
-    targetFats,
-    ffm,
-  };
-}
 
 function bmiCategory(bmi: number) {
   if (bmi < 18.5) return { label: "Underweight", color: "#3b82f6" };
@@ -182,7 +122,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
       <div className={styles.fields}>
         {/* Name */}
         <div className={styles.field}>
-          <label className={styles.label}>Name</label>
+          <label className={styles.label} htmlFor="profileName">Name</label>
           <input
             id="profileName"
             className={styles.input}
@@ -195,7 +135,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
         {/* Age + Gender row */}
         <div className={styles.row}>
           <div className={styles.field}>
-            <label className={styles.label}>Age</label>
+            <label className={styles.label} htmlFor="profileAge">Age</label>
             <input id="profileAge" type="number" min="10" max="100" className={styles.input}
               value={form.age} onChange={(e) => setForm((f) => ({ ...f, age: Number(e.target.value) }))} />
           </div>
@@ -203,7 +143,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
             <label className={styles.label}>Gender</label>
             <div className={styles.toggle}>
               {(["male","female"] as Gender[]).map((g) => (
-                <button key={g} id={`gender-${g}`}
+                <button key={g} id={`gender-${g}`} type="button" aria-pressed={form.gender === g}
                   className={`${styles.toggleBtn} ${form.gender === g ? styles.toggleActive : ""}`}
                   onClick={() => setForm((f) => ({ ...f, gender: g }))}>
                   {g === "male" ? "♂ Male" : "♀ Female"}
@@ -216,12 +156,12 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
         {/* Weight + Height */}
         <div className={styles.row}>
           <div className={styles.field}>
-            <label className={styles.label}>Weight (kg)</label>
+            <label className={styles.label} htmlFor="profileWeight">Weight (kg)</label>
             <input id="profileWeight" type="number" min="30" max="250" className={styles.input}
               value={form.weightKg} onChange={(e) => setForm((f) => ({ ...f, weightKg: Number(e.target.value) }))} />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Height (cm)</label>
+            <label className={styles.label} htmlFor="profileHeight">Height (cm)</label>
             <input id="profileHeight" type="number" min="100" max="250" className={styles.input}
               value={form.heightCm} onChange={(e) => setForm((f) => ({ ...f, heightCm: Number(e.target.value) }))} />
           </div>
@@ -229,7 +169,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
 
         {/* Activity Level */}
         <div className={styles.field}>
-          <label className={styles.label}>Activity Level</label>
+          <label className={styles.label} htmlFor="profileActivity">Activity Level</label>
           <select id="profileActivity" className={styles.select}
             value={form.activityLevel}
             onChange={(e) => setForm((f) => ({ ...f, activityLevel: e.target.value as ActivityLevel }))}>
@@ -244,7 +184,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
           <label className={styles.label}>Goal</label>
           <div className={styles.goalRow}>
             {(["lose","maintain","gain"] as Goal[]).map((g) => (
-              <button key={g} id={`goal-${g}`}
+              <button key={g} id={`goal-${g}`} type="button" aria-pressed={form.goal === g}
                 className={`${styles.goalBtn} ${form.goal === g ? styles.goalActive : ""}`}
                 onClick={() => setForm((f) => ({ ...f, goal: g }))}>
                 {GOAL_LABELS[g]}
@@ -258,7 +198,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
           <label className={styles.label}>Dietary Preference</label>
           <div className={styles.dietRow}>
             {(Object.entries(DIET_LABELS) as [DietType, string][]).map(([k, v]) => (
-              <button key={k} id={`diet-${k}`}
+              <button key={k} id={`diet-${k}`} type="button" aria-pressed={form.dietType === k}
                 className={`${styles.dietBtn} ${form.dietType === k ? styles.dietActive : ""}`}
                 onClick={() => setForm((f) => ({ ...f, dietType: k }))}>
                 {v}

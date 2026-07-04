@@ -37,6 +37,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
+    // Validate before reading into memory: reject non-images and oversized files.
+    if (!file.type.startsWith("image/")) {
+      return NextResponse.json({ error: "Uploaded file must be an image." }, { status: 400 });
+    }
+    const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
+    if (file.size > MAX_IMAGE_BYTES) {
+      return NextResponse.json(
+        { error: "Image is too large. Please use an image under 8MB." },
+        { status: 413 }
+      );
+    }
+
     const bytes = await file.arrayBuffer();
     const base64 = Buffer.from(bytes).toString("base64");
     const mimeType = file.type || "image/jpeg";
