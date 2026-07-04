@@ -147,6 +147,78 @@
   gap: 8px;
 }
 
+/* Real user-entered daily inputs (sleep + exercise) */
+.dailyLog {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.dailyField {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: text;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dailyField:focus-within {
+  border-color: var(--vibe-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dailyLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+.dailyInputWrap {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.dailyInput {
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f1f5f9;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 0;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.dailyInput::-webkit-outer-spin-button,
+.dailyInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.dailyUnit {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.demoNote {
+  font-size: 10.5px;
+  color: #475569;
+  margin: 0;
+  font-style: italic;
+}
+
 .bentoBiowave {
   grid-column: span 6;
   grid-row: span 2;

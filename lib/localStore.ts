@@ -62,3 +62,63 @@ export function saveTodayLogsLocal(logs: FoodEntry[]): void {
   // Persist only today's entries to keep storage bounded.
   safeSet(LOGS_KEY, logs.filter((l) => isToday(l.timestamp)));
 }
+
+// ── Daily metrics: user-entered sleep + exercise burn (reset each day) ──────
+const METRICS_KEY = "hv_daily_metrics";
+
+export interface DailyMetrics {
+  activeBurn: number; // exercise energy burned today (EEE), kcal
+  sleepHours: number; // sleep last night, hours
+}
+
+function todayStamp(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+/** Returns today's saved metrics, or null if none were saved today. */
+export function loadDailyMetricsLocal(): DailyMetrics | null {
+  const raw = safeGet<{ date: string } & DailyMetrics>(METRICS_KEY);
+  if (!raw || raw.date !== todayStamp()) return null;
+  return { activeBurn: raw.activeBurn, sleepHours: raw.sleepHours };
+}
+
+export function saveDailyMetricsLocal(metrics: DailyMetrics): void {
+  safeSet(METRICS_KEY, { date: todayStamp(), ...metrics });
+}
+
+// ── Day-over-day history (rolling snapshots for the Trends view) ────────────
+const HISTORY_KEY = "hv_history";
+
+export interface DailySnapshot {
+  date: string; // YYYY-M-D
+  label: string; // short human label e.g. "Jul 4"
+  ea: number;
+  vitalityScore: number;
+  energyIntake: number;
+  protein: number;
+  sleepHours: number;
+  activeBurn: number;
+}
+
+function todayLabel(): string {
+  return new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+export function loadHistoryLocal(): DailySnapshot[] {
+  return safeGet<DailySnapshot[]>(HISTORY_KEY) ?? [];
+}
+
+/**
+ * Insert or update today's snapshot in the rolling history (keeps the last 30
+ * days). Returns the updated history.
+ */
+export function recordSnapshotLocal(snap: Omit<DailySnapshot, "date" | "label">): DailySnapshot[] {
+  const stamp = todayStamp();
+  const entry: DailySnapshot = { date: stamp, label: todayLabel(), ...snap };
+  const all = loadHistoryLocal().filter((s) => s.date !== stamp);
+  all.push(entry);
+  const trimmed = all.slice(-30);
+  safeSet(HISTORY_KEY, trimmed);
+  return trimmed;
+}
