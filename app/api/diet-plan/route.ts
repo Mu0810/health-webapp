@@ -1,18 +1,21 @@
 /**
- * app/api/diet-plan/route.ts
- * Gemini AI personalized diet plan generator
+ * app/api/diet-plan/route.ts — Personalized 7-day meal plan via OpenRouter.
+ * POST /api/diet-plan  →  { summary, weeklyPlan[], tips[], avoid[] }
+ *
+ * Uses free text models on OpenRouter with a fallback chain.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { UserProfile } from "@/components/PersonalProfile";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
+import {
+  openRouterChat,
+  extractJson,
+  FREE_TEXT_MODELS,
+  MissingApiKeyError,
+} from "@/lib/openrouter";
 
 export async function POST(req: NextRequest) {
   try {
     const profile: UserProfile = await req.json();
-
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `You are a certified nutritionist and dietitian. Create a PERSONALIZED 7-day meal plan for this person:
 
@@ -68,15 +71,32 @@ Rules:
 - ${profile.dietType !== "none" ? `All meals MUST be ${profile.dietType} compliant` : "Include a variety of proteins"}
 - ${profile.goal === "lose" ? "Focus on high-volume, high-satiety foods" : profile.goal === "gain" ? "Include calorie-dense, muscle-building foods" : "Focus on whole foods and balance"}
 - Use realistic, practical ingredients available in most stores
-- Indian, Mediterranean and Asian options are welcome for variety`;
+- Indian, Mediterranean and Asian options are welcome for variety
+- Output the complete JSON for all 7 days. Do not truncate.`;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    const jsonStr = text.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
-    const parsed = JSON.parse(jsonStr);
+    const { text } = await openRouterChat({
+      models: FREE_TEXT_MODELS,
+      maxTokens: 6000,
+      temperature: 0.5,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a certified nutritionist that responds with a single strict JSON object only, no markdown.",
+        },
+        { role: "user", content: prompt },
+      ],
+    });
 
+    const parsed = extractJson(text);
     return NextResponse.json(parsed);
   } catch (err: unknown) {
+    if (err instanceof MissingApiKeyError) {
+      return NextResponse.json(
+        { error: "AI is not configured. Set OPENROUTER_API_KEY to enable diet plans." },
+        { status: 503 }
+      );
+    }
     console.error("[DietPlan API] Error:", err);
     return NextResponse.json(
       { error: "Failed to generate diet plan", detail: String(err) },

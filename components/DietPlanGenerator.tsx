@@ -114,7 +114,7 @@ export default function DietPlanGenerator({ profile }: Props) {
       {loading && (
         <div className={styles.loadingState}>
           <div className={styles.loadingRing} />
-          <p>Gemini AI is crafting your personal nutrition plan…</p>
+          <p>AI is crafting your personal nutrition plan…</p>
         </div>
       )}
 

@@ -1,12 +1,29 @@
 /**
- * VisionAPI.ts — Server-side route for Gemini multimodal food analysis.
- * POST /api/vision  →  { calories, protein, carbs, fats, glycemic_index }
+ * app/api/vision/route.ts — Food-photo nutrition analysis via OpenRouter.
+ * POST /api/vision  →  { name, calories, protein, carbs, fats, glycemic_index, confidence }
+ *
+ * Uses free, image-capable models on OpenRouter with a fallback chain.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  openRouterChat,
+  extractJson,
+  FREE_VISION_MODELS,
+  MissingApiKeyError,
+} from "@/lib/openrouter";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
+const PROMPT = `You are a precise nutritionist AI. Analyze this food photo and return ONLY a valid JSON object (no markdown, no explanation) with these exact fields:
+{
+  "name": "<dish name>",
+  "calories": <number>,
+  "protein": <grams as number>,
+  "carbs": <grams as number>,
+  "fats": <grams as number>,
+  "glycemic_index": <0-100 number or null>,
+  "confidence": <"high"|"medium"|"low">
+}
+Base estimates on a standard portion size visible in the image.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,40 +36,37 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const base64 = Buffer.from(bytes).toString("base64");
-    const mimeType = file.type as "image/jpeg" | "image/png" | "image/webp";
+    const mimeType = file.type || "image/jpeg";
+    const dataUrl = `data:${mimeType};base64,${base64}`;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-    const prompt = `You are a precise nutritionist AI. Analyze this food photo and return ONLY a valid JSON object (no markdown, no explanation) with these exact fields:
-{
-  "name": "<dish name>",
-  "calories": <number>,
-  "protein": <grams as number>,
-  "carbs": <grams as number>,
-  "fats": <grams as number>,
-  "glycemic_index": <0-100 number or null>,
-  "confidence": <"high"|"medium"|"low">
-}
-Base estimates on a standard portion size visible in the image.`;
-
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: base64,
-          mimeType,
+    const { text } = await openRouterChat({
+      models: FREE_VISION_MODELS,
+      maxTokens: 600,
+      temperature: 0.2,
+      messages: [
+        {
+          role: "system",
+          content: "You are a precise nutritionist AI that responds with strict JSON only.",
         },
-      },
-    ]);
+        {
+          role: "user",
+          content: [
+            { type: "text", text: PROMPT },
+            { type: "image_url", image_url: { url: dataUrl } },
+          ],
+        },
+      ],
+    });
 
-    const text = result.response.text();
-
-    // Strip any markdown fences if present
-    const jsonStr = text.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
-    const parsed = JSON.parse(jsonStr);
-
+    const parsed = extractJson(text);
     return NextResponse.json(parsed);
   } catch (err: unknown) {
+    if (err instanceof MissingApiKeyError) {
+      return NextResponse.json(
+        { error: "AI is not configured. Set OPENROUTER_API_KEY to enable food scanning." },
+        { status: 503 }
+      );
+    }
     console.error("[VisionAPI] Error:", err);
     return NextResponse.json(
       { error: "Failed to analyze image", detail: String(err) },

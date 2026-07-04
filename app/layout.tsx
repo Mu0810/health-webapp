@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     "Vision-First AI food logging with Energy Availability tracking, biometric wave monitoring, and contextual nudges to keep your body in the optimal zone.",
   openGraph: {
     title: "Healthvibe",
-    description: "Proactive health tracking powered by Gemini Vision and Energy Availability science.",
+    description: "Proactive health tracking powered by AI vision and Energy Availability science.",
   },
 };
 
