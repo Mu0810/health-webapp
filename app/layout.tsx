@@ -18,7 +18,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {/* Living Organism: a breathing energy glow behind all content, driven
+            by the user's real-time vitality state (see [data-vibe] in globals). */}
+        <div className="vibe-pulse" aria-hidden="true" />
+        {/* One-shot energy ripple played when vitality crosses a threshold. */}
+        <div id="vibe-flash" className="vibe-flash" aria-hidden="true" />
+        {children}
+      </body>
     </html>
   );
 }
