@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap');
+/* Inter + Space Grotesk are self-hosted via next/font (see app/layout.tsx) and
+   consumed through the --font-inter / --font-space-grotesk CSS variables. This
+   avoids a render-blocking external stylesheet request and its layout shift. */
 
 /* Animatable custom properties (enable rotating conic borders + gradient sweeps) */
 @property --angle {
@@ -83,7 +85,7 @@ html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--font-inter), 'Inter', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
@@ -232,6 +234,9 @@ body::after {
   box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.14);
   transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1),
               box-shadow 0.4s ease, border-color 0.4s ease;
+  /* Scope style/layout recalc to the changed card as live metrics tick.
+     (No `paint` — the hover halo/border ring intentionally draw outside bounds.) */
+  contain: layout style;
 }
 
 /* Rotating conic glow ring around every card (subtle idle, vivid on hover) */

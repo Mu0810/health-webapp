@@ -232,9 +232,13 @@ export function useGravity() {
     };
   }, []);
 
-  // Simulate real-time biometric fluctuations
+  // Simulate real-time biometric fluctuations.
+  // The tick only runs while the tab is visible: a backgrounded tab gains
+  // nothing from simulated glucose/HRV drift, and each tick forces a full
+  // dashboard re-render — so pausing it saves CPU + battery and avoids
+  // throttled-timer jank when the user returns.
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
+    const tick = () => {
       setState((prev) => {
         const newGlucose = Math.max(
           65,
@@ -262,10 +266,31 @@ export function useGravity() {
           vitalityStatus: getVitalityStatus(vs),
         };
       });
-    }, 3000);
+    };
+
+    const start = () => {
+      if (intervalRef.current == null) {
+        intervalRef.current = setInterval(tick, 3000);
+      }
+    };
+    const stop = () => {
+      if (intervalRef.current != null) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+    const onVisibility = () => {
+      if (typeof document !== "undefined" && document.hidden) stop();
+      else start();
+    };
+
+    // Start only if visible; pause/resume on tab visibility changes.
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener("visibilitychange", onVisibility);
+      stop();
     };
   }, []);
 
