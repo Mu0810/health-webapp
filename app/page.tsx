@@ -83,6 +83,14 @@ export default function Home() {
     };
   }, []);
 
+  // Living Organism: reflect real-time vitality onto the entire UI. The whole
+  // app breathes faster/brighter when energetic and dims/slows when depleted.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute("data-vibe", vitalityStatus);
+    root.style.setProperty("--vibe-energy", String(Math.max(0, Math.min(1, vitalityScore / 10))));
+  }, [vitalityStatus, vitalityScore]);
+
   // Persist the profile whenever the user saves it (localStorage + DB).
   const handleProfileSaved = (p: UserProfile) => {
     setProfile(p);

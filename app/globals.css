@@ -23,6 +23,43 @@
   --red: #ef4444;
   --shadow-card: 0 8px 30px -12px rgba(0,0,0,0.6);
   --shadow-card-hover: 0 18px 48px -16px rgba(0,0,0,0.7);
+
+  /* ── Living Organism: vibe theme reacts to real-time vitality ──
+     Defaults (teal / neutral). Overridden by html[data-vibe="…"] and the
+     --vibe-energy (0-1) value set from the live vitality score. */
+  --vibe-accent: #5eead4;
+  --vibe-glow: rgba(94,234,212,0.5);
+  --vibe-aurora-opacity: 0.9;
+  --vibe-saturation: 160%;
+  --vibe-breathe: 7s;      /* breathing pace — faster when energetic */
+  --vibe-energy: 0.7;      /* 0-1, from vitality score; modulates intensity */
+}
+
+/* Energetic / optimal — vibrant, warm, quicker breathing */
+html[data-vibe="green"] {
+  --vibe-accent: #34d399;
+  --vibe-glow: rgba(52,211,153,0.55);
+  --vibe-aurora-opacity: 1;
+  --vibe-saturation: 178%;
+  --vibe-breathe: 4.5s;
+}
+
+/* Caution — steady amber */
+html[data-vibe="amber"] {
+  --vibe-accent: #fbbf24;
+  --vibe-glow: rgba(245,158,11,0.5);
+  --vibe-aurora-opacity: 0.82;
+  --vibe-saturation: 150%;
+  --vibe-breathe: 7s;
+}
+
+/* Depleted / low energy availability — dimmer, cooler, slow & sluggish */
+html[data-vibe="red"] {
+  --vibe-accent: #f87171;
+  --vibe-glow: rgba(239,68,68,0.42);
+  --vibe-aurora-opacity: 0.5;
+  --vibe-saturation: 112%;
+  --vibe-breathe: 11s;
 }
 
 html, body {
@@ -54,9 +91,30 @@ body::before {
     radial-gradient(circle at 20% 30%, rgba(13,148,136,0.16), transparent 40%),
     radial-gradient(circle at 80% 20%, rgba(129,140,248,0.10), transparent 42%),
     radial-gradient(circle at 65% 80%, rgba(8,145,178,0.12), transparent 45%);
-  filter: blur(30px);
+  filter: blur(30px) saturate(var(--vibe-saturation));
+  opacity: var(--vibe-aurora-opacity);
   animation: aurora 24s ease-in-out infinite alternate;
+  transition: opacity 1.4s ease, filter 1.4s ease;
   pointer-events: none;
+}
+
+/* Living Organism: a breathing energy glow whose colour, brightness, and pace
+   track the user's real-time vitality (variables set on <html>). */
+.vibe-pulse {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 42%, var(--vibe-glow), transparent 62%);
+  opacity: calc(0.12 + var(--vibe-energy) * 0.28);
+  animation: breathe var(--vibe-breathe) ease-in-out infinite;
+  transition: background 1.4s ease, opacity 1.4s ease;
+  will-change: transform, opacity;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.14); }
 }
 
 /* Fine grain texture for a premium, less-flat surface */
@@ -127,7 +185,8 @@ body::after {
 .glass-card:hover {
   border-color: var(--border-strong);
   background: var(--glass-hover);
-  box-shadow: var(--shadow-card-hover);
+  /* second layer = a soft energy halo tinted by the current vibe */
+  box-shadow: var(--shadow-card-hover), 0 0 44px -22px var(--vibe-glow);
   transform: translateY(-3px);
 }
 
