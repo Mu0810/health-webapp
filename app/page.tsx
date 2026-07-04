@@ -5,7 +5,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGravity } from "@/lib/EAController";
 import { getDeviceId } from "@/lib/device";
 import { loadProfileLocal, saveProfileLocal } from "@/lib/localStore";
@@ -85,10 +85,26 @@ export default function Home() {
 
   // Living Organism: reflect real-time vitality onto the entire UI. The whole
   // app breathes faster/brighter when energetic and dims/slows when depleted.
+  const prevVibeRef = useRef<string | null>(null);
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute("data-vibe", vitalityStatus);
-    root.style.setProperty("--vibe-energy", String(Math.max(0, Math.min(1, vitalityScore / 10))));
+
+    const energy = Math.max(0, Math.min(1, vitalityScore / 10));
+    root.style.setProperty("--vibe-energy", String(energy));
+    // Continuous breathing pace: ~4.5s when fully energised → ~10.5s when depleted.
+    root.style.setProperty("--vibe-breathe", `${(10.5 - energy * 6).toFixed(2)}s`);
+
+    // Threshold crossing → replay a one-shot energy ripple (skip first mount).
+    if (prevVibeRef.current && prevVibeRef.current !== vitalityStatus) {
+      const el = document.getElementById("vibe-flash");
+      if (el) {
+        el.classList.remove("flash");
+        void el.offsetWidth; // force reflow to restart the animation
+        el.classList.add("flash");
+      }
+    }
+    prevVibeRef.current = vitalityStatus;
   }, [vitalityStatus, vitalityScore]);
 
   // Persist the profile whenever the user saves it (localStorage + DB).

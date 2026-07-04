@@ -26,13 +26,13 @@
 
 .navLogo {
   font-size: 20px;
-  filter: drop-shadow(0 0 8px rgba(94, 234, 212, 0.6));
-  animation: logoPulse 3.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px var(--vibe-glow));
+  animation: logoPulse var(--vibe-breathe, 3.5s) ease-in-out infinite;
 }
 
 @keyframes logoPulse {
-  0%, 100% { filter: drop-shadow(0 0 6px rgba(94, 234, 212, 0.45)); }
-  50%      { filter: drop-shadow(0 0 12px rgba(94, 234, 212, 0.8)); }
+  0%, 100% { filter: drop-shadow(0 0 6px var(--vibe-glow)); }
+  50%      { filter: drop-shadow(0 0 13px var(--vibe-accent)); }
 }
 
 .navTitle {
@@ -210,8 +210,8 @@
   width: 3px;
   height: 14px;
   border-radius: 2px;
-  background: linear-gradient(180deg, #5eead4, #0d9488);
-  box-shadow: 0 0 8px rgba(94, 234, 212, 0.6);
+  background: linear-gradient(180deg, var(--vibe-accent), var(--teal));
+  box-shadow: 0 0 8px var(--vibe-glow);
 }
 
 .sectionLabel {
