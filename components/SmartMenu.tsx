@@ -35,19 +35,21 @@ const RESTAURANT_DATA: MenuItem[] = [
 ];
 
 export default function SmartMenu({ remainingProtein, remainingCalories }: Props) {
-  const [locationGranted, setLocationGranted] = useState<boolean | null>(null);
+  // Lazily determine geolocation support at mount (client-only component).
+  // `null` = still resolving, `true`/`false` = permission outcome.
+  const [locationGranted, setLocationGranted] = useState<boolean | null>(
+    () => (typeof navigator !== "undefined" && navigator.geolocation ? null : false)
+  );
   const [filter, setFilter] = useState<"all" | "green">("green");
-  const [loading, setLoading] = useState(false);
+
+  // `loading` is derived from state rather than stored separately.
+  const loading = locationGranted === null;
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocationGranted(false);
-      return;
-    }
-    setLoading(true);
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      () => { setLocationGranted(true); setLoading(false); },
-      () => { setLocationGranted(false); setLoading(false); }
+      () => setLocationGranted(true),
+      () => setLocationGranted(false)
     );
   }, []);
 

@@ -214,7 +214,7 @@ export default function Home() {
               <>
                 <div className="sep" />
                 <div className={styles.foodLog}>
-                  <p className={styles.sectionLabel}>Today's Log</p>
+                  <p className={styles.sectionLabel}>Today&apos;s Log</p>
                   {nutrition.logs.slice(0, 4).map((entry) => (
                     <div key={entry.id} className={styles.foodEntry}>
                       <span className={styles.foodName}>{entry.name}</span>
