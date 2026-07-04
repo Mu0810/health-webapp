@@ -107,7 +107,7 @@ export default function DietPlanGenerator({ profile }: Props) {
           <p className={styles.emptyHint}>
             {profile.dietType !== "none" ? `${profile.dietType} · ` : ""}{profile.targetCalories} kcal target
           </p>
-          <p className={styles.emptyAction}>↑ Click "Generate My Plan"</p>
+          <p className={styles.emptyAction}>↑ Click &ldquo;Generate My Plan&rdquo;</p>
         </div>
       )}
 

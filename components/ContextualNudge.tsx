@@ -53,6 +53,10 @@ export default function ContextualNudge({ vitalityScore, vitalityStatus, eaStatu
         status: vitalityStatus,
         timestamp: now,
       };
+      // Intentional side effect: emit a transient notification when the
+      // vitality status crosses a threshold. This is an external-UI-style
+      // signal, not derivable state, so the set-state-in-effect rule is waived.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNudges((prev) => [nudge, ...prev].slice(0, 3));
       sentAtRef.current = now;
     }

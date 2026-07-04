@@ -26,14 +26,16 @@ const GLUCOSE_MIN = 60;
 const GLUCOSE_MAX = 180;
 const GREEN_ZONE = { min: 70, max: 140 };
 
+// Chart geometry constants (module-scope so they're stable across renders)
+const W = 560;
+const PAD = { x: 8, y: 8 };
+
 function normalise(v: number, min: number, max: number, h: number): number {
   return h - ((v - min) / (max - min)) * h;
 }
 
 export default function BiometricWave({ data, foodMarks = [], height = 140 }: Props) {
-  const W = 560;
   const H = height;
-  const PAD = { x: 8, y: 8 };
 
   const { pathD, areaD, points } = useMemo(() => {
     if (data.length < 2) return { pathD: "", areaD: "", points: [] };

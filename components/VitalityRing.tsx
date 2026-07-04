@@ -3,7 +3,6 @@
  */
 "use client";
 
-import { useMemo } from "react";
 import type { EAStatus } from "@/lib/ThemeConfig";
 import { StatusColor, StatusLabel } from "@/lib/ThemeConfig";
 import styles from "./VitalityRing.module.css";
