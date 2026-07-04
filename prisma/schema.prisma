@@ -1,5 +1,8 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Healthvibe database schema.
+// No auth yet — records are keyed by a client-generated device id so a
+// browser keeps its own profile + food logs across refreshes/devices-sync-later.
+// Local dev uses SQLite; production points DATABASE_URL at a hosted DB
+// (Turso/libSQL keeps this same `sqlite` provider; Neon/Postgres would swap it).
 
 generator client {
   provider = "prisma-client-js"
@@ -10,35 +13,49 @@ datasource db {
 }
 
 model User {
-  id             String      @id @default(cuid())
-  name           String?
-  vitalityScore  Float       @default(10.0)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  biometrics     Biometric[]
-  foods          FoodLog[]
+  id        String    @id // client-generated device id
+  name      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  profile   Profile?
+  foods     FoodLog[]
 }
 
-model Biometric {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  glucose    Float?   // in mg/dL
-  hrv        Float?   // Heart Rate Variability in ms
-  activeBurn Float?   // Active Energy Burned in kcal
-  timestamp  DateTime @default(now())
+model Profile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  age            Int
+  gender         String
+  weightKg       Float
+  heightCm       Float
+  activityLevel  String
+  goal           String
+  dietType       String
+  // Computed targets
+  bmi            Float
+  bmr            Float
+  tdee           Float
+  targetCalories Float
+  targetProtein  Float
+  targetCarbs    Float
+  targetFats     Float
+  ffm            Float
+  updatedAt      DateTime @updatedAt
 }
 
 model FoodLog {
-  id             String   @id @default(cuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id])
-  name           String
-  calories       Float
-  protein        Float
-  carbs          Float
-  fats           Float
-  glycemicIndex  Float?
-  imageUrl       String?
-  timestamp      DateTime @default(now())
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  calories      Float
+  protein       Float
+  carbs         Float
+  fats          Float
+  glycemicIndex Float?
+  timestamp     DateTime @default(now())
+
+  @@index([userId, timestamp])
 }

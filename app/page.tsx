@@ -5,11 +5,34 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGravity } from "@/lib/EAController";
+import { getDeviceId } from "@/lib/device";
 import { StatusColor, StatusLabel, Colors } from "@/lib/ThemeConfig";
 import type { UserProfile } from "@/components/PersonalProfile";
 import styles from "./page.module.css";
+
+/** Map a persisted DB profile row onto the client UserProfile type. */
+function dbToProfile(p: Record<string, unknown>): UserProfile {
+  return {
+    name: String(p.name ?? ""),
+    age: Number(p.age),
+    gender: p.gender as UserProfile["gender"],
+    weightKg: Number(p.weightKg),
+    heightCm: Number(p.heightCm),
+    activityLevel: p.activityLevel as UserProfile["activityLevel"],
+    goal: p.goal as UserProfile["goal"],
+    dietType: p.dietType as UserProfile["dietType"],
+    bmi: Number(p.bmi),
+    bmr: Number(p.bmr),
+    tdee: Number(p.tdee),
+    targetCalories: Number(p.targetCalories),
+    targetProtein: Number(p.targetProtein),
+    targetCarbs: Number(p.targetCarbs),
+    targetFats: Number(p.targetFats),
+    ffm: Number(p.ffm),
+  };
+}
 
 // Dynamic imports with SSR disabled for client-heavy widgets
 const VisionLogger    = dynamic(() => import("@/components/VisionLogger"),       { ssr: false });
@@ -26,6 +49,42 @@ export default function Home() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "profile" | "dietplan">("dashboard");
+
+  // Load a previously saved profile for this browser from the database.
+  useEffect(() => {
+    const id = getDeviceId();
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/profile?userId=${encodeURIComponent(id)}`);
+        if (!res.ok) return;
+        const { profile: saved } = await res.json();
+        if (!cancelled && saved) setProfile(dbToProfile(saved));
+      } catch {
+        /* offline / no DB — start without a saved profile */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Persist the profile whenever the user saves it.
+  const handleProfileSaved = (p: UserProfile) => {
+    setProfile(p);
+    setActiveTab("dietplan");
+    const id = getDeviceId();
+    if (id) {
+      fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: id, ...p }),
+      }).catch(() => {
+        /* offline / no DB — keep in-memory profile */
+      });
+    }
+  };
 
   // Use profile targets if a profile is saved, otherwise fall back to defaults
   const targets = {
@@ -95,10 +154,7 @@ export default function Home() {
           <div className={styles.profilePage}>
             <div className={`glass-card ${styles.profileFormCard}`}>
               <PersonalProfile
-                onProfileSaved={(p) => {
-                  setProfile(p);
-                  setActiveTab("dietplan");
-                }}
+                onProfileSaved={handleProfileSaved}
                 savedProfile={profile}
               />
             </div>

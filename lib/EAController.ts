@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getEAStatus, getVitalityStatus, type EAStatus } from "./ThemeConfig";
+import { getDeviceId } from "./device";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -73,6 +74,19 @@ export function calcVitalityScore(ea: number, sleepHours: number): number {
   return Math.round((eaNorm + sleepNorm) * 10) / 10;
 }
 
+/** Sum a list of food entries into cumulative nutrition totals. */
+function totalsFromLogs(logs: FoodEntry[]) {
+  return logs.reduce(
+    (acc, l) => ({
+      energyIntake: acc.energyIntake + l.calories,
+      protein: acc.protein + l.protein,
+      carbs: acc.carbs + l.carbs,
+      fats: acc.fats + l.fats,
+    }),
+    { energyIntake: 0, protein: 0, carbs: 0, fats: 0 }
+  );
+}
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 const DEFAULT_STATE: GravityState = {
@@ -82,11 +96,12 @@ const DEFAULT_STATE: GravityState = {
     activeBurn: 340,
     glucoseHistory: [],
   },
+  // Nutrition starts empty and is hydrated from the database (today's logs).
   nutrition: {
-    energyIntake: 1820,
-    protein: 138,
-    carbs: 210,
-    fats: 62,
+    energyIntake: 0,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
     logs: [],
   },
   ffm: 62,
@@ -119,6 +134,55 @@ export function useGravity() {
   });
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const deviceIdRef = useRef<string>("");
+
+  // Hydrate today's food logs from the database on mount.
+  useEffect(() => {
+    const id = getDeviceId();
+    deviceIdRef.current = id;
+    if (!id) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/logs?userId=${encodeURIComponent(id)}`);
+        if (!res.ok) return;
+        const { logs } = await res.json();
+        if (cancelled || !Array.isArray(logs)) return;
+
+        const mapped: FoodEntry[] = logs.map((l: Record<string, unknown>) => ({
+          id: String(l.id),
+          name: String(l.name),
+          calories: Number(l.calories),
+          protein: Number(l.protein),
+          carbs: Number(l.carbs),
+          fats: Number(l.fats),
+          glycemicIndex: l.glycemicIndex == null ? undefined : Number(l.glycemicIndex),
+          timestamp: new Date(String(l.timestamp)).getTime(),
+        }));
+
+        setState((prev) => {
+          const totals = totalsFromLogs(mapped);
+          const ea = calcEA(totals.energyIntake, prev.biometrics.activeBurn, prev.ffm);
+          const vs = calcVitalityScore(ea, prev.sleepHours);
+          return {
+            ...prev,
+            nutrition: { ...totals, logs: mapped },
+            ea: Math.round(ea * 10) / 10,
+            eaStatus: getEAStatus(ea),
+            vitalityScore: vs,
+            vitalityStatus: getVitalityStatus(vs),
+          };
+        });
+      } catch {
+        // Offline / no DB configured — keep in-memory state.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Simulate real-time biometric fluctuations
   useEffect(() => {
@@ -163,6 +227,19 @@ export function useGravity() {
       id: Math.random().toString(36).slice(2),
       timestamp: Date.now(),
     };
+
+    // Persist to the database (fire-and-forget; UI updates optimistically below).
+    const id = deviceIdRef.current || getDeviceId();
+    if (id) {
+      fetch("/api/logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: id, ...entry }),
+      }).catch(() => {
+        /* offline / no DB — keep optimistic state */
+      });
+    }
+
     setState((prev) => {
       const newEI = prev.nutrition.energyIntake + entry.calories;
       const ea = calcEA(newEI, prev.biometrics.activeBurn, prev.ffm);
