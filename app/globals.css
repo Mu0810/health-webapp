@@ -200,6 +200,28 @@ body::after {
   60%, 100% { transform: translateX(220%); }
 }
 
+/* Loading skeleton (used as the placeholder for lazy dashboard widgets) */
+.skeleton {
+  position: relative;
+  width: 100%;
+  min-height: 168px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+  transform: translateX(-100%);
+  animation: skelShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skelShimmer {
+  100% { transform: translateX(100%); }
+}
+
 /* Respect reduced-motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
