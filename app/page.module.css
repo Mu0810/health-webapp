@@ -7,13 +7,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(12px);
+  padding: 14px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(13, 17, 23, 0.7);
+  background: rgba(10, 14, 20, 0.72);
+  box-shadow: 0 10px 30px -24px rgba(0, 0, 0, 0.9);
 }
 
 .navBrand {
@@ -24,6 +26,13 @@
 
 .navLogo {
   font-size: 20px;
+  filter: drop-shadow(0 0 8px rgba(94, 234, 212, 0.6));
+  animation: logoPulse 3.5s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(94, 234, 212, 0.45)); }
+  50%      { filter: drop-shadow(0 0 12px rgba(94, 234, 212, 0.8)); }
 }
 
 .navTitle {
@@ -48,23 +57,30 @@
 }
 
 .navTab {
-  padding: 6px 16px;
+  padding: 7px 16px;
   border-radius: 20px;
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
-  color: #64748b;
+  color: #94a3b8;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s;
+  transition: color 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s;
   font-family: inherit;
 }
 
-.navTabActive {
-  background: rgba(13,148,136,0.2);
+.navTab:hover {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.navTabActive,
+.navTabActive:hover {
+  background: linear-gradient(135deg, rgba(13,148,136,0.28), rgba(8,145,178,0.22));
   color: #5eead4;
-  border: 1px solid rgba(13,148,136,0.3);
+  border: 1px solid rgba(13,148,136,0.45);
+  box-shadow: 0 0 16px -2px rgba(13,148,136,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 
 .navBadge {
@@ -106,7 +122,11 @@
   font-weight: 700;
   color: white;
   letter-spacing: 0.03em;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 4px 12px -2px rgba(13,148,136,0.6);
+  transition: transform 0.2s;
 }
+
+.navAvatar:hover { transform: scale(1.06); }
 
 /* ── Bento cell assignments ── */
 
@@ -266,7 +286,9 @@
 .eaResult {
   font-size: 26px;
   font-weight: 800;
-  transition: color 0.6s;
+  transition: color 0.6s, text-shadow 0.6s;
+  text-shadow: 0 0 20px currentColor;
+  letter-spacing: -0.02em;
 }
 
 .eaUnit {
@@ -343,6 +365,8 @@
   font-weight: 800;
   margin: 0;
   line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 24px currentColor;
 }
 
 .statCardSub {
@@ -389,11 +413,16 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
+  transition: box-shadow 0.2s, transform 0.12s, filter 0.2s;
   font-family: inherit;
+  box-shadow: 0 8px 24px -8px rgba(13,148,136,0.7);
 }
 
-.goProfileBtn:hover { opacity: 0.85; transform: translateY(-1px); }
+.goProfileBtn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px -8px rgba(13,148,136,0.85);
+}
 
 /* Vitality card CTA */
 .profileCta {
@@ -431,8 +460,25 @@
 }
 
 @media (max-width: 640px) {
-  .navTabs { display: none; }
+  .nav {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    padding: 12px 16px;
+  }
+  /* Keep tabs reachable on mobile: full-width, horizontally scrollable */
+  .navTabs {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .navTabs::-webkit-scrollbar { display: none; }
+  .navTab { flex: 0 0 auto; }
+
   .profileStats { grid-template-columns: repeat(2, 1fr); }
+  .statCardValue { font-size: 28px; }
   .bentoVitality, .bentoBiowave, .bentoVision,
   .bentoMacros, .bentoEA, .bentoMenu {
     grid-column: 1 / -1;
