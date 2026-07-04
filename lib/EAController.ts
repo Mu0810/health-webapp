@@ -73,10 +73,10 @@ export function calcEA(ei: number, eee: number, ffm: number): number {
 }
 
 export function calcVitalityScore(ea: number, sleepHours: number): number {
-  // Normalise EA: optimal 45 → 10, 0 → 0
-  const eaNorm = Math.min(10, Math.max(0, (ea / 45) * 7));
-  // Sleep: 8h → 3 pts
-  const sleepNorm = Math.min(3, (sleepHours / 8) * 3);
+  // Composite 0–10: Energy Availability contributes up to 7 points (optimal
+  // EA of 45 → the full 7), sleep contributes up to 3 (8h → the full 3).
+  const eaNorm = Math.min(7, Math.max(0, (ea / 45) * 7));
+  const sleepNorm = Math.min(3, Math.max(0, (sleepHours / 8) * 3));
   return Math.round((eaNorm + sleepNorm) * 10) / 10;
 }
 
