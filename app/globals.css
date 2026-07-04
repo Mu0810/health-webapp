@@ -1,4 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* Animatable custom properties (enable rotating conic borders + gradient sweeps) */
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -7,58 +14,68 @@
 }
 
 :root {
-  --bg: #0a0e14;
-  --bg-secondary: #111827;
+  --bg: #05030c;
+  --bg-secondary: #0b0718;
   --glass: rgba(255,255,255,0.045);
-  --glass-hover: rgba(255,255,255,0.075);
-  --border: rgba(255,255,255,0.09);
-  --border-strong: rgba(255,255,255,0.18);
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #475569;
-  --teal: #0d9488;
+  --glass-hover: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.22);
+  --text-primary: #f4f3ff;
+  --text-secondary: #a5a3c4;
+  --text-muted: #6b6890;
+  --teal: #2dd4bf;
   --teal-light: #5eead4;
-  --green: #10b981;
-  --amber: #f59e0b;
-  --red: #ef4444;
-  --shadow-card: 0 8px 30px -12px rgba(0,0,0,0.6);
-  --shadow-card-hover: 0 18px 48px -16px rgba(0,0,0,0.7);
+  --green: #34d399;
+  --amber: #fbbf24;
+  --red: #fb7185;
 
-  /* ── Living Organism: vibe theme reacts to real-time vitality ──
-     Defaults (teal / neutral). Overridden by html[data-vibe="…"] and the
-     --vibe-energy (0-1) value set from the live vitality score. */
-  --vibe-accent: #5eead4;
-  --vibe-glow: rgba(94,234,212,0.5);
-  --vibe-aurora-opacity: 0.9;
-  --vibe-saturation: 160%;
-  --vibe-breathe: 7s;      /* breathing pace — faster when energetic */
-  --vibe-energy: 0.7;      /* 0-1, from vitality score; modulates intensity */
+  /* Neon / holographic palette */
+  --neon-cyan: #22d3ee;
+  --neon-violet: #a855f7;
+  --neon-pink: #ec4899;
+  --neon-blue: #3b82f6;
+  --neon-emerald: #34d399;
+
+  --shadow-card: 0 20px 60px -28px rgba(0,0,0,0.85);
+  --shadow-card-hover: 0 34px 80px -30px rgba(0,0,0,0.9);
+
+  /* ── Living Organism: vibe theme reacts to real-time vitality ── */
+  --vibe-accent: #22d3ee;
+  --vibe-accent-2: #a855f7;
+  --vibe-glow: rgba(34,211,238,0.55);
+  --vibe-aurora-opacity: 1;
+  --vibe-saturation: 170%;
+  --vibe-breathe: 7s;
+  --vibe-energy: 0.7;
 }
 
-/* Energetic / optimal — vibrant, warm, quicker breathing */
+/* Energetic / optimal — electric emerald→cyan */
 html[data-vibe="green"] {
   --vibe-accent: #34d399;
-  --vibe-glow: rgba(52,211,153,0.55);
+  --vibe-accent-2: #22d3ee;
+  --vibe-glow: rgba(52,211,153,0.6);
   --vibe-aurora-opacity: 1;
-  --vibe-saturation: 178%;
+  --vibe-saturation: 185%;
   --vibe-breathe: 4.5s;
 }
 
-/* Caution — steady amber */
+/* Caution — amber→pink */
 html[data-vibe="amber"] {
   --vibe-accent: #fbbf24;
-  --vibe-glow: rgba(245,158,11,0.5);
-  --vibe-aurora-opacity: 0.82;
-  --vibe-saturation: 150%;
+  --vibe-accent-2: #fb7185;
+  --vibe-glow: rgba(251,191,36,0.55);
+  --vibe-aurora-opacity: 0.9;
+  --vibe-saturation: 165%;
   --vibe-breathe: 7s;
 }
 
-/* Depleted / low energy availability — dimmer, cooler, slow & sluggish */
+/* Depleted — cool violet→blue, dimmed & slow */
 html[data-vibe="red"] {
-  --vibe-accent: #f87171;
-  --vibe-glow: rgba(239,68,68,0.42);
-  --vibe-aurora-opacity: 0.5;
-  --vibe-saturation: 112%;
+  --vibe-accent: #fb7185;
+  --vibe-accent-2: #a855f7;
+  --vibe-glow: rgba(251,113,133,0.5);
+  --vibe-aurora-opacity: 0.62;
+  --vibe-saturation: 130%;
   --vibe-breathe: 11s;
 }
 
@@ -72,41 +89,52 @@ html, body {
   overflow-x: hidden;
 }
 
+/* ── Animated holographic mesh background ── */
 body {
   position: relative;
+  background-color: var(--bg);
   background-image:
-    radial-gradient(ellipse 80% 60% at 8% 6%, rgba(13,148,136,0.14) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 92% 88%, rgba(14,116,144,0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 45% 45% at 50% 45%, rgba(5,150,105,0.06) 0%, transparent 70%);
+    radial-gradient(ellipse 70% 55% at 12% 8%,  rgba(168,85,247,0.20) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 88% 12%, rgba(34,211,238,0.16) 0%, transparent 58%),
+    radial-gradient(ellipse 65% 60% at 78% 92%, rgba(236,72,153,0.16) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 55% at 20% 88%, rgba(59,130,246,0.14) 0%, transparent 60%);
   background-attachment: fixed;
 }
 
-/* Living aurora — a slow-drifting glow layer behind all content */
+/* Drifting colour blobs — the main "wow" layer */
 body::before {
   content: "";
   position: fixed;
-  inset: -20%;
+  inset: -25%;
   z-index: -2;
   background:
-    radial-gradient(circle at 20% 30%, rgba(13,148,136,0.16), transparent 40%),
-    radial-gradient(circle at 80% 20%, rgba(129,140,248,0.10), transparent 42%),
-    radial-gradient(circle at 65% 80%, rgba(8,145,178,0.12), transparent 45%);
-  filter: blur(30px) saturate(var(--vibe-saturation));
+    radial-gradient(circle at 22% 28%, rgba(168,85,247,0.55), transparent 38%),
+    radial-gradient(circle at 78% 22%, rgba(34,211,238,0.45), transparent 40%),
+    radial-gradient(circle at 68% 82%, rgba(236,72,153,0.42), transparent 42%),
+    radial-gradient(circle at 30% 78%, rgba(59,130,246,0.40), transparent 42%);
+  filter: blur(60px) saturate(var(--vibe-saturation));
   opacity: var(--vibe-aurora-opacity);
-  animation: aurora 24s ease-in-out infinite alternate;
+  animation: meshDrift 26s ease-in-out infinite alternate;
   transition: opacity 1.4s ease, filter 1.4s ease;
   pointer-events: none;
+  will-change: transform;
 }
 
-/* Living Organism: a breathing energy glow whose colour, brightness, and pace
-   track the user's real-time vitality (variables set on <html>). */
+@keyframes meshDrift {
+  0%   { transform: translate3d(0,0,0) scale(1) rotate(0deg); }
+  33%  { transform: translate3d(3%,-3%,0) scale(1.1) rotate(3deg); }
+  66%  { transform: translate3d(-3%,2%,0) scale(1.05) rotate(-2deg); }
+  100% { transform: translate3d(2%,3%,0) scale(1.12) rotate(2deg); }
+}
+
+/* Breathing energy glow driven by real-time vitality */
 .vibe-pulse {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 42%, var(--vibe-glow), transparent 62%);
-  opacity: calc(0.12 + var(--vibe-energy) * 0.28);
+  background: radial-gradient(circle at 50% 40%, var(--vibe-glow), transparent 60%);
+  opacity: calc(0.10 + var(--vibe-energy) * 0.26);
   animation: breathe var(--vibe-breathe) ease-in-out infinite;
   transition: background 1.4s ease, opacity 1.4s ease;
   will-change: transform, opacity;
@@ -114,145 +142,195 @@ body::before {
 
 @keyframes breathe {
   0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.14); }
+  50%      { transform: scale(1.16); }
 }
 
-/* Fine grain texture for a premium, less-flat surface */
+/* Moving neon grid + fine grain for depth */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
-  opacity: 0.035;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.5;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+  background-size: 46px 46px;
+  animation: gridPan 40s linear infinite;
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, #000 30%, transparent 85%);
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, #000 30%, transparent 85%);
 }
 
-@keyframes aurora {
-  0%   { transform: translate3d(0, 0, 0) scale(1); }
-  50%  { transform: translate3d(2%, -1.5%, 0) scale(1.06); }
-  100% { transform: translate3d(-2%, 1.5%, 0) scale(1.03); }
+@keyframes gridPan {
+  to { background-position: 46px 46px; }
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.12);
+  background: linear-gradient(var(--vibe-accent), var(--vibe-accent-2));
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover { background: var(--vibe-glow); background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { filter: brightness(1.2); }
 
-/* Accessible focus ring (tinted by the current vibe) */
+/* Accessible focus ring */
 :focus-visible {
   outline: 2px solid var(--vibe-accent);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 ::selection {
-  background: var(--vibe-glow);
-  color: #fff;
+  background: var(--vibe-accent);
+  color: #05030c;
 }
 
-/* One-shot energy ripple when vitality crosses a status threshold */
+/* One-shot energy ripple on status threshold crossing */
 .vibe-flash {
   position: fixed;
   inset: 0;
   z-index: 60;
   pointer-events: none;
   opacity: 0;
-  background: radial-gradient(circle at 50% 42%, var(--vibe-glow), transparent 68%);
+  background: radial-gradient(circle at 50% 42%, var(--vibe-glow), transparent 66%);
 }
-.vibe-flash.flash {
-  animation: vibeFlash 1s ease-out;
-}
+.vibe-flash.flash { animation: vibeFlash 1s ease-out; }
 @keyframes vibeFlash {
   0%   { opacity: 0; }
-  22%  { opacity: 0.42; }
+  20%  { opacity: 0.55; }
   100% { opacity: 0; }
 }
 
-/* Glass card */
-.glass-card {
-  position: relative;
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  background: var(--glass);
-  border-radius: 24px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-card);
-  transition: border-color 0.28s ease, background 0.28s ease,
-              box-shadow 0.28s ease, transform 0.28s cubic-bezier(0.4,0,0.2,1);
+/* Utility: animated holographic gradient text */
+.holo-text {
+  background: linear-gradient(100deg, var(--vibe-accent), var(--neon-violet), var(--neon-pink), var(--vibe-accent));
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: holoShift 6s ease-in-out infinite;
+}
+@keyframes holoShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
 }
 
-/* Soft highlight along the top edge for a lit-glass feel */
+/* ── Glass card with animated holographic border ── */
+.glass-card {
+  position: relative;
+  isolation: isolate;
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  background:
+    linear-gradient(158deg, rgba(255,255,255,0.075), rgba(255,255,255,0.02) 42%, rgba(255,255,255,0.035));
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.14);
+  transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1),
+              box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+/* Rotating conic glow ring around every card (subtle idle, vivid on hover) */
 .glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--angle),
+    transparent 0%,
+    var(--vibe-accent) 10%,
+    var(--vibe-accent-2) 22%,
+    transparent 38%,
+    transparent 62%,
+    var(--neon-pink) 78%,
+    transparent 92%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0.35;
+  transition: opacity 0.4s ease;
+  animation: borderSpin 6s linear infinite;
+}
+
+@keyframes borderSpin {
+  to { --angle: 360deg; }
+}
+
+/* Top-edge lit-glass highlight */
+.glass-card::after {
   content: "";
   position: absolute;
   top: 0;
   left: 22px;
   right: 22px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
   pointer-events: none;
 }
 
 .glass-card:hover {
   border-color: var(--border-strong);
-  background: var(--glass-hover);
-  /* second layer = a soft energy halo tinted by the current vibe */
-  box-shadow: var(--shadow-card-hover), 0 0 44px -22px var(--vibe-glow);
-  transform: translateY(-3px);
+  transform: translateY(-5px) scale(1.008);
+  box-shadow: var(--shadow-card-hover),
+              inset 0 1px 0 rgba(255,255,255,0.2),
+              0 0 60px -18px var(--vibe-glow);
 }
+.glass-card:hover::before { opacity: 1; }
 
 /* Bento grid */
 .bento-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   grid-auto-rows: minmax(80px, auto);
-  gap: 16px;
-  padding: 20px 24px 40px;
+  gap: 18px;
+  padding: 24px 24px 48px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Staggered entrance for bento cards */
+/* Staggered 3D entrance for bento cards */
 .bento-grid > * {
-  animation: cardIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
-.bento-grid > *:nth-child(1) { animation-delay: 0.03s; }
-.bento-grid > *:nth-child(2) { animation-delay: 0.09s; }
-.bento-grid > *:nth-child(3) { animation-delay: 0.15s; }
-.bento-grid > *:nth-child(4) { animation-delay: 0.21s; }
-.bento-grid > *:nth-child(5) { animation-delay: 0.27s; }
-.bento-grid > *:nth-child(6) { animation-delay: 0.33s; }
+.bento-grid > *:nth-child(1) { animation-delay: 0.05s; }
+.bento-grid > *:nth-child(2) { animation-delay: 0.12s; }
+.bento-grid > *:nth-child(3) { animation-delay: 0.19s; }
+.bento-grid > *:nth-child(4) { animation-delay: 0.26s; }
+.bento-grid > *:nth-child(5) { animation-delay: 0.33s; }
+.bento-grid > *:nth-child(6) { animation-delay: 0.40s; }
 
 @keyframes cardIn {
-  from { opacity: 0; transform: translateY(14px) scale(0.985); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(26px) scale(0.95) rotateX(8deg); }
+  to   { opacity: 1; transform: translateY(0) scale(1) rotateX(0); }
 }
 
 /* Status colours */
 .status-green { color: var(--green); }
-.status-amber  { color: var(--amber); }
-.status-red    { color: var(--red); }
+.status-amber { color: var(--amber); }
+.status-red   { color: var(--red); }
 
 /* Subtle separator */
 .sep {
   height: 1px;
-  background: var(--border);
+  background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
   margin: 12px 0;
 }
 
 /* Stat bar */
 .stat-bar-track {
-  height: 6px;
+  height: 7px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.08);
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
 }
 
 .stat-bar-fill {
@@ -260,6 +338,7 @@ body::after {
   border-radius: 999px;
   position: relative;
   transition: width 0.9s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 0 10px -1px currentColor;
 }
 
 /* Moving sheen across filled bars */
@@ -267,22 +346,22 @@ body::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
   transform: translateX(-100%);
-  animation: sheen 2.6s ease-in-out infinite;
+  animation: sheen 2.4s ease-in-out infinite;
 }
 
 @keyframes sheen {
   0%   { transform: translateX(-100%); }
-  60%, 100% { transform: translateX(220%); }
+  60%, 100% { transform: translateX(240%); }
 }
 
-/* Loading skeleton (used as the placeholder for lazy dashboard widgets) */
+/* Loading skeleton */
 .skeleton {
   position: relative;
   width: 100%;
   min-height: 168px;
-  border-radius: 16px;
+  border-radius: 18px;
   background: rgba(255,255,255,0.04);
   overflow: hidden;
 }
@@ -290,13 +369,19 @@ body::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+  background: linear-gradient(90deg, transparent, rgba(168,85,247,0.12), rgba(34,211,238,0.12), transparent);
   transform: translateX(-100%);
   animation: skelShimmer 1.5s ease-in-out infinite;
 }
 
 @keyframes skelShimmer {
   100% { transform: translateX(100%); }
+}
+
+/* Floating helper (used for playful accents) */
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
 }
 
 /* Respect reduced-motion preferences */
@@ -307,4 +392,5 @@ body::after {
     transition-duration: 0.001ms !important;
   }
   .glass-card:hover { transform: none; }
+  body::before, body::after, .vibe-pulse { animation: none !important; }
 }
