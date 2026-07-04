@@ -43,13 +43,14 @@ const SmartMenu       = dynamic(() => import("@/components/SmartMenu"),         
 const ContextualNudge = dynamic(() => import("@/components/ContextualNudge"),    { ssr: false });
 const PersonalProfile = dynamic(() => import("@/components/PersonalProfile"),    { ssr: false });
 const DietPlanGenerator = dynamic(() => import("@/components/DietPlanGenerator"), { ssr: false });
+const CoachChat       = dynamic(() => import("@/components/CoachChat"),          { ssr: false });
 
 export default function Home() {
   const { state, logFood } = useGravity();
   const { biometrics, nutrition, ea, eaStatus, vitalityScore, vitalityStatus, sleepHours } = state;
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "profile" | "dietplan">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "profile" | "dietplan" | "coach">("dashboard");
 
   // Load a saved profile: offline-first from localStorage, then sync from the
   // database if one is configured (server copy wins when present).
@@ -146,6 +147,10 @@ export default function Home() {
             onClick={() => setActiveTab("dietplan")}>
             🥗 Diet Plan {!profile && <span className={styles.navBadge}>Set profile first</span>}
           </button>
+          <button id="tabCoach" className={`${styles.navTab} ${activeTab === "coach" ? styles.navTabActive : ""}`}
+            onClick={() => setActiveTab("coach")}>
+            🤖 Coach
+          </button>
         </nav>
 
         <div className={styles.navRight}>
@@ -225,6 +230,44 @@ export default function Home() {
               <DietPlanGenerator profile={profile} />
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Coach Tab ── */}
+      {activeTab === "coach" && (
+        <div className={styles.tabPage}>
+          <div className={`glass-card ${styles.dietPlanCard}`}>
+            <CoachChat
+              context={{
+                profile: profile
+                  ? {
+                      name: profile.name,
+                      age: profile.age,
+                      gender: profile.gender,
+                      weightKg: profile.weightKg,
+                      heightCm: profile.heightCm,
+                      goal: profile.goal,
+                      dietType: profile.dietType,
+                      activityLevel: profile.activityLevel,
+                      bmi: profile.bmi,
+                      tdee: profile.tdee,
+                    }
+                  : null,
+                nutrition: {
+                  energyIntake: nutrition.energyIntake,
+                  protein: nutrition.protein,
+                  carbs: nutrition.carbs,
+                  fats: nutrition.fats,
+                },
+                targets,
+                ea,
+                eaStatus,
+                vitalityScore,
+                vitalityStatus,
+                recentFoods: nutrition.logs.map((l) => l.name).slice(0, 6),
+              }}
+            />
+          </div>
         </div>
       )}
 
