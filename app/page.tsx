@@ -8,7 +8,7 @@ import dynamic from "next/dynamic";
 import { useState, useEffect, useRef } from "react";
 import { useGravity } from "@/lib/EAController";
 import { getDeviceId } from "@/lib/device";
-import { loadProfileLocal, saveProfileLocal } from "@/lib/localStore";
+import { loadProfileLocal, saveProfileLocal, recordSnapshotLocal } from "@/lib/localStore";
 import { StatusColor, StatusLabel, Colors } from "@/lib/ThemeConfig";
 import type { UserProfile } from "@/components/PersonalProfile";
 import styles from "./page.module.css";
@@ -48,13 +48,14 @@ const PersonalProfile = dynamic(() => import("@/components/PersonalProfile"),   
 const DietPlanGenerator = dynamic(() => import("@/components/DietPlanGenerator"), { ssr: false, loading: CardSkeleton });
 const CoachChat       = dynamic(() => import("@/components/CoachChat"),          { ssr: false, loading: CardSkeleton });
 const EnergyTank      = dynamic(() => import("@/components/EnergyTank"),         { ssr: false });
+const TrendsPanel     = dynamic(() => import("@/components/TrendsPanel"),        { ssr: false, loading: CardSkeleton });
 
 export default function Home() {
   const { state, logFood, setDailyMetrics } = useGravity();
   const { biometrics, nutrition, ea, eaStatus, vitalityScore, vitalityStatus, sleepHours } = state;
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "profile" | "dietplan" | "coach">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "profile" | "dietplan" | "coach" | "trends">("dashboard");
 
   // Load a saved profile: offline-first from localStorage, then sync from the
   // database if one is configured (server copy wins when present).
@@ -107,6 +108,19 @@ export default function Home() {
     }
     prevVibeRef.current = vitalityStatus;
   }, [vitalityStatus, vitalityScore]);
+
+  // Record a rolling daily snapshot for the Trends view whenever the day's key
+  // metrics change (localStorage write only — no setState, so lint-safe).
+  useEffect(() => {
+    recordSnapshotLocal({
+      ea,
+      vitalityScore,
+      energyIntake: nutrition.energyIntake,
+      protein: nutrition.protein,
+      sleepHours,
+      activeBurn: biometrics.activeBurn,
+    });
+  }, [ea, vitalityScore, nutrition.energyIntake, nutrition.protein, sleepHours, biometrics.activeBurn]);
 
   // Persist the profile whenever the user saves it (localStorage + DB).
   const handleProfileSaved = (p: UserProfile) => {
@@ -178,6 +192,10 @@ export default function Home() {
           <button id="tabCoach" className={`${styles.navTab} ${activeTab === "coach" ? styles.navTabActive : ""}`}
             onClick={() => setActiveTab("coach")}>
             🤖 Coach
+          </button>
+          <button id="tabTrends" className={`${styles.navTab} ${activeTab === "trends" ? styles.navTabActive : ""}`}
+            onClick={() => setActiveTab("trends")}>
+            📈 Trends
           </button>
         </nav>
 
@@ -295,6 +313,15 @@ export default function Home() {
                 recentFoods: nutrition.logs.map((l) => l.name).slice(0, 6),
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* ── Trends Tab ── */}
+      {activeTab === "trends" && (
+        <div className={styles.tabPage}>
+          <div className={`glass-card ${styles.dietPlanCard}`}>
+            <TrendsPanel />
           </div>
         </div>
       )}
