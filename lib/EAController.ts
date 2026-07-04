@@ -9,7 +9,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getEAStatus, getVitalityStatus, type EAStatus } from "./ThemeConfig";
 import { getDeviceId } from "./device";
-import { loadTodayLogsLocal, saveTodayLogsLocal } from "./localStore";
+import {
+  loadTodayLogsLocal,
+  saveTodayLogsLocal,
+  loadDailyMetricsLocal,
+  saveDailyMetricsLocal,
+} from "./localStore";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -94,7 +99,7 @@ const DEFAULT_STATE: GravityState = {
   biometrics: {
     glucose: 92,
     hrv: 58,
-    activeBurn: 340,
+    activeBurn: 0, // exercise energy (EEE) — user-entered; 0 until a workout is logged
     glucoseHistory: [],
   },
   // Nutrition starts empty and is hydrated from the database (today's logs).
@@ -110,7 +115,7 @@ const DEFAULT_STATE: GravityState = {
   eaStatus: "green",
   vitalityScore: 0,
   vitalityStatus: "green",
-  sleepHours: 7.2,
+  sleepHours: 7.5, // user-entered; sensible default until set
 };
 
 export function useGravity() {
@@ -166,12 +171,32 @@ export function useGravity() {
       });
     };
 
-    // 1) Show locally-persisted logs immediately.
+    // Apply today's user-entered metrics (sleep + exercise) via a local helper
+    // so the setState stays inside a nested function (lint-safe).
+    const applyMetrics = (m: { activeBurn: number; sleepHours: number }) => {
+      setState((prev) => {
+        const ea = calcEA(prev.nutrition.energyIntake, m.activeBurn, prev.ffm);
+        const vs = calcVitalityScore(ea, m.sleepHours);
+        return {
+          ...prev,
+          biometrics: { ...prev.biometrics, activeBurn: m.activeBurn },
+          sleepHours: m.sleepHours,
+          ea: Math.round(ea * 10) / 10,
+          eaStatus: getEAStatus(ea),
+          vitalityScore: vs,
+          vitalityStatus: getVitalityStatus(vs),
+        };
+      });
+    };
+
+    // 1) Show locally-persisted logs + metrics immediately.
     const local = loadTodayLogsLocal();
     if (local.length) {
       logsRef.current = local;
       applyLogs(local);
     }
+    const dm = loadDailyMetricsLocal();
+    if (dm) applyMetrics(dm);
 
     // 2) Sync from the server when a DB is configured.
     if (id) {
@@ -306,5 +331,29 @@ export function useGravity() {
     });
   }, []);
 
-  return { state, logFood, updateBiometrics };
+  // User-entered daily metrics: exercise burn (EEE) + sleep. These feed the
+  // real EA/vitality math and persist offline-first (today-scoped).
+  const setDailyMetrics = useCallback(
+    (patch: { activeBurn?: number; sleepHours?: number }) => {
+      setState((prev) => {
+        const activeBurn = Math.max(0, patch.activeBurn ?? prev.biometrics.activeBurn);
+        const sleepHours = Math.max(0, patch.sleepHours ?? prev.sleepHours);
+        saveDailyMetricsLocal({ activeBurn, sleepHours });
+        const ea = calcEA(prev.nutrition.energyIntake, activeBurn, prev.ffm);
+        const vs = calcVitalityScore(ea, sleepHours);
+        return {
+          ...prev,
+          biometrics: { ...prev.biometrics, activeBurn },
+          sleepHours,
+          ea: Math.round(ea * 10) / 10,
+          eaStatus: getEAStatus(ea),
+          vitalityScore: vs,
+          vitalityStatus: getVitalityStatus(vs),
+        };
+      });
+    },
+    []
+  );
+
+  return { state, logFood, updateBiometrics, setDailyMetrics };
 }

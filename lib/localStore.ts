@@ -62,3 +62,27 @@ export function saveTodayLogsLocal(logs: FoodEntry[]): void {
   // Persist only today's entries to keep storage bounded.
   safeSet(LOGS_KEY, logs.filter((l) => isToday(l.timestamp)));
 }
+
+// ── Daily metrics: user-entered sleep + exercise burn (reset each day) ──────
+const METRICS_KEY = "hv_daily_metrics";
+
+export interface DailyMetrics {
+  activeBurn: number; // exercise energy burned today (EEE), kcal
+  sleepHours: number; // sleep last night, hours
+}
+
+function todayStamp(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+/** Returns today's saved metrics, or null if none were saved today. */
+export function loadDailyMetricsLocal(): DailyMetrics | null {
+  const raw = safeGet<{ date: string } & DailyMetrics>(METRICS_KEY);
+  if (!raw || raw.date !== todayStamp()) return null;
+  return { activeBurn: raw.activeBurn, sleepHours: raw.sleepHours };
+}
+
+export function saveDailyMetricsLocal(metrics: DailyMetrics): void {
+  safeSet(METRICS_KEY, { date: todayStamp(), ...metrics });
+}

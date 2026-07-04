@@ -50,7 +50,7 @@ const CoachChat       = dynamic(() => import("@/components/CoachChat"),         
 const EnergyTank      = dynamic(() => import("@/components/EnergyTank"),         { ssr: false });
 
 export default function Home() {
-  const { state, logFood } = useGravity();
+  const { state, logFood, setDailyMetrics } = useGravity();
   const { biometrics, nutrition, ea, eaStatus, vitalityScore, vitalityStatus, sleepHours } = state;
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -308,13 +308,24 @@ export default function Home() {
             <VitalityRing score={vitalityScore} ea={ea} status={vitalityStatus} eaStatus={eaStatus} />
             <div className={styles.vitalityMeta}>
               <StatRow label="EA Score"  value={`${ea} kcal/kg`}              color={eaColor} />
-              <StatRow label="Sleep"     value={`${sleepHours}h`}             color={Colors.textSecondary} />
               <StatRow label="HRV"       value={`${Math.round(biometrics.hrv)} ms`} color="#818cf8" />
               {profile && <>
                 <div className="sep" />
                 <StatRow label="BMI"     value={String(profile.bmi)}          color={profile.bmi < 25 ? "#10b981" : "#f59e0b"} />
                 <StatRow label="TDEE"    value={`${profile.tdee} kcal`}       color="#f59e0b" />
               </>}
+            </div>
+
+            {/* Real, user-entered inputs that drive EA + vitality */}
+            <div className={styles.dailyLog}>
+              <DailyField
+                label="😴 Sleep" unit="h" value={sleepHours} step={0.5} max={14}
+                onChange={(v) => setDailyMetrics({ sleepHours: v })}
+              />
+              <DailyField
+                label="🔥 Exercise" unit="kcal" value={biometrics.activeBurn} step={50} max={4000}
+                onChange={(v) => setDailyMetrics({ activeBurn: v })}
+              />
             </div>
             {!profile && (
               <button className={styles.profileCta} onClick={() => setActiveTab("profile")} id="ctaProfileBtn">
@@ -331,6 +342,7 @@ export default function Home() {
               <MiniStat label="Active Burn" value={`${Math.round(biometrics.activeBurn)}`} unit="kcal" />
               <MiniStat label="HRV"         value={`${Math.round(biometrics.hrv)}`}        unit="ms" />
             </div>
+            <p className={styles.demoNote}>◦ Glucose &amp; HRV are simulated demo sensors — connect a wearable/CGM to make them real</p>
           </div>
 
           {/* 3. Vision Logger */}
@@ -413,6 +425,28 @@ function StatRow({ label, value, color }: { label: string; value: string; color:
       <span style={{ fontSize: 12, color: Colors.textMuted }}>{label}</span>
       <span style={{ fontSize: 13, fontWeight: 600, color }}>{value}</span>
     </div>
+  );
+}
+
+function DailyField({ label, unit, value, step, max, onChange }: {
+  label: string; unit: string; value: number; step: number; max: number; onChange: (v: number) => void;
+}) {
+  return (
+    <label className={styles.dailyField}>
+      <span className={styles.dailyLabel}>{label}</span>
+      <span className={styles.dailyInputWrap}>
+        <input
+          className={styles.dailyInput}
+          type="number"
+          min={0}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+        />
+        <span className={styles.dailyUnit}>{unit}</span>
+      </span>
+    </label>
   );
 }
 
