@@ -47,6 +47,7 @@ const ContextualNudge = dynamic(() => import("@/components/ContextualNudge"),   
 const PersonalProfile = dynamic(() => import("@/components/PersonalProfile"),    { ssr: false, loading: CardSkeleton });
 const DietPlanGenerator = dynamic(() => import("@/components/DietPlanGenerator"), { ssr: false, loading: CardSkeleton });
 const CoachChat       = dynamic(() => import("@/components/CoachChat"),          { ssr: false, loading: CardSkeleton });
+const EnergyTank      = dynamic(() => import("@/components/EnergyTank"),         { ssr: false });
 
 export default function Home() {
   const { state, logFood } = useGravity();
@@ -365,26 +366,31 @@ export default function Home() {
           {/* 5. EA Formula */}
           <div className={`glass-card ${styles.bentoEA}`}>
             <h3 className={styles.cardTitle}>Energy Availability</h3>
-            <div className={styles.eaFormula}>
-              <div className={styles.eaFraction}>
-                <span className={styles.eaNumerator}>EI − EEE</span>
-                <div className={styles.eaDivider} />
-                <span className={styles.eaDenominator}>FFM</span>
+            <div className={styles.eaBody}>
+              <EnergyTank ea={ea} status={eaStatus} />
+              <div className={styles.eaInfo}>
+                <div className={styles.eaFormula}>
+                  <div className={styles.eaFraction}>
+                    <span className={styles.eaNumerator}>EI − EEE</span>
+                    <div className={styles.eaDivider} />
+                    <span className={styles.eaDenominator}>FFM</span>
+                  </div>
+                  <span className={styles.eaEquals}>= </span>
+                  <span className={styles.eaResult} style={{ color: eaColor }}>
+                    {ea}<span className={styles.eaUnit}> kcal/kg/d</span>
+                  </span>
+                </div>
+                <div className={styles.eaComponents}>
+                  <EAComponent label="Energy Intake (EI)"   value={`${nutrition.energyIntake} kcal`} />
+                  <EAComponent label="Exercise Energy (EEE)" value={`${biometrics.activeBurn} kcal`} />
+                  <EAComponent label="Fat-Free Mass (FFM)"   value={`${profile?.ffm ?? state.ffm} kg`} />
+                </div>
+                <div className={styles.eaStatusBadge} style={{ background: StatusColor[eaStatus].bg, borderColor: StatusColor[eaStatus].primary + "50" }}>
+                  <span style={{ color: StatusColor[eaStatus].text }}>
+                    {StatusLabel[eaStatus]} — {eaStatus === "green" ? "≥45" : eaStatus === "amber" ? "30–44" : "<30"} kcal/kg/d
+                  </span>
+                </div>
               </div>
-              <span className={styles.eaEquals}>= </span>
-              <span className={styles.eaResult} style={{ color: eaColor }}>
-                {ea}<span className={styles.eaUnit}> kcal/kg/d</span>
-              </span>
-            </div>
-            <div className={styles.eaComponents}>
-              <EAComponent label="Energy Intake (EI)"   value={`${nutrition.energyIntake} kcal`} />
-              <EAComponent label="Exercise Energy (EEE)" value={`${biometrics.activeBurn} kcal`} />
-              <EAComponent label="Fat-Free Mass (FFM)"   value={`${profile?.ffm ?? state.ffm} kg`} />
-            </div>
-            <div className={styles.eaStatusBadge} style={{ background: StatusColor[eaStatus].bg, borderColor: StatusColor[eaStatus].primary + "50" }}>
-              <span style={{ color: StatusColor[eaStatus].text }}>
-                {StatusLabel[eaStatus]} — {eaStatus === "green" ? "≥45" : eaStatus === "amber" ? "30–44" : "<30"} kcal/kg/d
-              </span>
             </div>
           </div>
 
