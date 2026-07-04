@@ -122,7 +122,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
       <div className={styles.fields}>
         {/* Name */}
         <div className={styles.field}>
-          <label className={styles.label}>Name</label>
+          <label className={styles.label} htmlFor="profileName">Name</label>
           <input
             id="profileName"
             className={styles.input}
@@ -135,7 +135,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
         {/* Age + Gender row */}
         <div className={styles.row}>
           <div className={styles.field}>
-            <label className={styles.label}>Age</label>
+            <label className={styles.label} htmlFor="profileAge">Age</label>
             <input id="profileAge" type="number" min="10" max="100" className={styles.input}
               value={form.age} onChange={(e) => setForm((f) => ({ ...f, age: Number(e.target.value) }))} />
           </div>
@@ -143,7 +143,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
             <label className={styles.label}>Gender</label>
             <div className={styles.toggle}>
               {(["male","female"] as Gender[]).map((g) => (
-                <button key={g} id={`gender-${g}`}
+                <button key={g} id={`gender-${g}`} type="button" aria-pressed={form.gender === g}
                   className={`${styles.toggleBtn} ${form.gender === g ? styles.toggleActive : ""}`}
                   onClick={() => setForm((f) => ({ ...f, gender: g }))}>
                   {g === "male" ? "♂ Male" : "♀ Female"}
@@ -156,12 +156,12 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
         {/* Weight + Height */}
         <div className={styles.row}>
           <div className={styles.field}>
-            <label className={styles.label}>Weight (kg)</label>
+            <label className={styles.label} htmlFor="profileWeight">Weight (kg)</label>
             <input id="profileWeight" type="number" min="30" max="250" className={styles.input}
               value={form.weightKg} onChange={(e) => setForm((f) => ({ ...f, weightKg: Number(e.target.value) }))} />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Height (cm)</label>
+            <label className={styles.label} htmlFor="profileHeight">Height (cm)</label>
             <input id="profileHeight" type="number" min="100" max="250" className={styles.input}
               value={form.heightCm} onChange={(e) => setForm((f) => ({ ...f, heightCm: Number(e.target.value) }))} />
           </div>
@@ -169,7 +169,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
 
         {/* Activity Level */}
         <div className={styles.field}>
-          <label className={styles.label}>Activity Level</label>
+          <label className={styles.label} htmlFor="profileActivity">Activity Level</label>
           <select id="profileActivity" className={styles.select}
             value={form.activityLevel}
             onChange={(e) => setForm((f) => ({ ...f, activityLevel: e.target.value as ActivityLevel }))}>
@@ -184,7 +184,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
           <label className={styles.label}>Goal</label>
           <div className={styles.goalRow}>
             {(["lose","maintain","gain"] as Goal[]).map((g) => (
-              <button key={g} id={`goal-${g}`}
+              <button key={g} id={`goal-${g}`} type="button" aria-pressed={form.goal === g}
                 className={`${styles.goalBtn} ${form.goal === g ? styles.goalActive : ""}`}
                 onClick={() => setForm((f) => ({ ...f, goal: g }))}>
                 {GOAL_LABELS[g]}
@@ -198,7 +198,7 @@ export default function PersonalProfile({ onProfileSaved, savedProfile }: Props)
           <label className={styles.label}>Dietary Preference</label>
           <div className={styles.dietRow}>
             {(Object.entries(DIET_LABELS) as [DietType, string][]).map(([k, v]) => (
-              <button key={k} id={`diet-${k}`}
+              <button key={k} id={`diet-${k}`} type="button" aria-pressed={form.dietType === k}
                 className={`${styles.dietBtn} ${form.dietType === k ? styles.dietActive : ""}`}
                 onClick={() => setForm((f) => ({ ...f, dietType: k }))}>
                 {v}

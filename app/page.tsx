@@ -178,22 +178,27 @@ export default function Home() {
         </div>
 
         {/* Tab navigation */}
-        <nav className={styles.navTabs}>
-          <button id="tabDashboard" className={`${styles.navTab} ${activeTab === "dashboard" ? styles.navTabActive : ""}`}
+        <nav className={styles.navTabs} aria-label="Primary">
+          <button type="button" id="tabDashboard" aria-current={activeTab === "dashboard" ? "page" : undefined}
+            className={`${styles.navTab} ${activeTab === "dashboard" ? styles.navTabActive : ""}`}
             onClick={() => setActiveTab("dashboard")}>Dashboard</button>
-          <button id="tabProfile" className={`${styles.navTab} ${activeTab === "profile" ? styles.navTabActive : ""}`}
+          <button type="button" id="tabProfile" aria-current={activeTab === "profile" ? "page" : undefined}
+            className={`${styles.navTab} ${activeTab === "profile" ? styles.navTabActive : ""}`}
             onClick={() => setActiveTab("profile")}>
             {profile ? `👤 ${profile.name || "Profile"}` : "👤 My Profile"}
           </button>
-          <button id="tabDietPlan" className={`${styles.navTab} ${activeTab === "dietplan" ? styles.navTabActive : ""}`}
+          <button type="button" id="tabDietPlan" aria-current={activeTab === "dietplan" ? "page" : undefined}
+            className={`${styles.navTab} ${activeTab === "dietplan" ? styles.navTabActive : ""}`}
             onClick={() => setActiveTab("dietplan")}>
             🥗 Diet Plan {!profile && <span className={styles.navBadge}>Set profile first</span>}
           </button>
-          <button id="tabCoach" className={`${styles.navTab} ${activeTab === "coach" ? styles.navTabActive : ""}`}
+          <button type="button" id="tabCoach" aria-current={activeTab === "coach" ? "page" : undefined}
+            className={`${styles.navTab} ${activeTab === "coach" ? styles.navTabActive : ""}`}
             onClick={() => setActiveTab("coach")}>
             🤖 Coach
           </button>
-          <button id="tabTrends" className={`${styles.navTab} ${activeTab === "trends" ? styles.navTabActive : ""}`}
+          <button type="button" id="tabTrends" aria-current={activeTab === "trends" ? "page" : undefined}
+            className={`${styles.navTab} ${activeTab === "trends" ? styles.navTabActive : ""}`}
             onClick={() => setActiveTab("trends")}>
             📈 Trends
           </button>

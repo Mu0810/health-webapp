@@ -214,7 +214,7 @@
 
 .demoNote {
   font-size: 10.5px;
-  color: #475569;
+  color: #8b97ab; /* readable contrast on the dark card */
   margin: 0;
   font-style: italic;
 }

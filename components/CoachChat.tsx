@@ -84,7 +84,7 @@ export default function CoachChat({ context }: Props) {
         </div>
       </div>
 
-      <div className={styles.messages} ref={scrollRef}>
+      <div className={styles.messages} ref={scrollRef} role="log" aria-live="polite" aria-label="Conversation with your coach">
         {messages.length === 0 && !loading && (
           <div className={styles.empty}>
             <p className={styles.emptyText}>
@@ -110,14 +110,18 @@ export default function CoachChat({ context }: Props) {
         ))}
 
         {loading && (
-          <div className={`${styles.bubble} ${styles.assistant} ${styles.typing}`}>
+          <div
+            className={`${styles.bubble} ${styles.assistant} ${styles.typing}`}
+            role="status"
+            aria-label="Coach is typing"
+          >
             <span className={styles.dot} />
             <span className={styles.dot} />
             <span className={styles.dot} />
           </div>
         )}
 
-        {error && <div className={styles.error}>{error}</div>}
+        {error && <div className={styles.error} role="alert">{error}</div>}
       </div>
 
       <form
@@ -130,6 +134,7 @@ export default function CoachChat({ context }: Props) {
         <input
           id="coachInput"
           className={styles.input}
+          aria-label="Message your coach"
           value={input}
           placeholder="Message your coach…"
           onChange={(e) => setInput(e.target.value)}
