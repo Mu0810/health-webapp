@@ -18,6 +18,8 @@ COPY . .
 # Provide a build-time SQLite URL so prisma generate works
 ENV DATABASE_URL="file:./dev.db"
 ENV NEXT_TELEMETRY_DISABLED=1
+# Opt into Next.js standalone output for self-hosted container runtime
+ENV DOCKER_BUILD=1
 
 # Generate Prisma client, then build Next.js
 RUN npx prisma generate && npm run build

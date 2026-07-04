@@ -104,7 +104,7 @@ export default function VisionLogger({ onFoodLogged }: Props) {
           <div className={styles.dropzoneInner}>
             <div className={styles.dropzoneIcon}>📸</div>
             <p className={styles.dropzoneText}>Drop a food photo or tap to capture</p>
-            <p className={styles.dropzoneHint}>Gemini Vision analyses macros instantly</p>
+            <p className={styles.dropzoneHint}>AI vision analyses macros instantly</p>
           </div>
           <input
             id="foodImageInput"
@@ -126,7 +126,7 @@ export default function VisionLogger({ onFoodLogged }: Props) {
           {phase === "scanning" && (
             <div className={styles.scanOverlay}>
               <div className={styles.laserBeam} />
-              <div className={styles.scanText}>Analysing with Gemini Vision…</div>
+              <div className={styles.scanText}>Analysing with AI vision…</div>
             </div>
           )}
         </div>
