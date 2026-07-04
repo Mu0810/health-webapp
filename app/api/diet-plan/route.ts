@@ -13,6 +13,9 @@ import {
   MissingApiKeyError,
 } from "@/lib/openrouter";
 
+// Allow up to 60s on Vercel for the model-fallback chain.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   try {
     const profile: UserProfile = await req.json();
@@ -64,20 +67,23 @@ Return ONLY a valid JSON object (no markdown, no explanation) in this exact stru
   "avoid": ["3-4 specific foods or habits to avoid based on their goal and diet type"]
 }
 
-Rules:
-- Each day must have 4-5 meals (breakfast, lunch, dinner, 1-2 snacks)
-- Total calories per day must be close to ${profile.targetCalories} kcal (±50 kcal)
-- Total protein per day must be close to ${profile.targetProtein}g
+Rules (keep output COMPACT so the full week fits in one response):
+- Exactly 4 meals per day: Breakfast, Lunch, Dinner, Snack
+- Max 3 ingredients per meal; keep "notes" empty ("") to save space
+- Total calories per day close to ${profile.targetCalories} kcal (±60 kcal)
+- Total protein per day close to ${profile.targetProtein}g
 - ${profile.dietType !== "none" ? `All meals MUST be ${profile.dietType} compliant` : "Include a variety of proteins"}
-- ${profile.goal === "lose" ? "Focus on high-volume, high-satiety foods" : profile.goal === "gain" ? "Include calorie-dense, muscle-building foods" : "Focus on whole foods and balance"}
-- Use realistic, practical ingredients available in most stores
-- Indian, Mediterranean and Asian options are welcome for variety
-- Output the complete JSON for all 7 days. Do not truncate.`;
+- ${profile.goal === "lose" ? "Prioritise high-volume, high-satiety foods" : profile.goal === "gain" ? "Prioritise calorie-dense, muscle-building foods" : "Prioritise whole foods and balance"}
+- Realistic ingredients; Indian/Mediterranean/Asian variety welcome
+- Output the complete compact JSON for all 7 days. Do not add any text outside the JSON.`;
 
     const { text } = await openRouterChat({
       models: FREE_TEXT_MODELS,
-      maxTokens: 6000,
+      maxTokens: 4500,
       temperature: 0.5,
+      timeoutMs: 40000,
+      totalTimeoutMs: 57000,
+      reasoningEffort: "low",
       messages: [
         {
           role: "system",

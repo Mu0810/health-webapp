@@ -13,6 +13,9 @@ import {
   MissingApiKeyError,
 } from "@/lib/openrouter";
 
+// Allow up to 60s on Vercel for the model-fallback chain.
+export const maxDuration = 60;
+
 const PROMPT = `You are a precise nutritionist AI. Analyze this food photo and return ONLY a valid JSON object (no markdown, no explanation) with these exact fields:
 {
   "name": "<dish name>",
@@ -41,8 +44,10 @@ export async function POST(req: NextRequest) {
 
     const { text } = await openRouterChat({
       models: FREE_VISION_MODELS,
-      maxTokens: 600,
+      maxTokens: 700,
       temperature: 0.2,
+      timeoutMs: 18000,
+      totalTimeoutMs: 45000,
       messages: [
         {
           role: "system",
