@@ -8,7 +8,13 @@ import dynamic from "next/dynamic";
 import { useState, useEffect, useRef } from "react";
 import { useGravity } from "@/lib/EAController";
 import { getDeviceId } from "@/lib/device";
-import { loadProfileLocal, saveProfileLocal, recordSnapshotLocal } from "@/lib/localStore";
+import {
+  loadProfileLocal,
+  saveProfileLocal,
+  recordSnapshotLocal,
+  loadOnboardedLocal,
+  saveOnboardedLocal,
+} from "@/lib/localStore";
 import { StatusColor, StatusLabel, Colors } from "@/lib/ThemeConfig";
 import type { UserProfile } from "@/components/PersonalProfile";
 import styles from "./page.module.css";
@@ -49,6 +55,7 @@ const DietPlanGenerator = dynamic(() => import("@/components/DietPlanGenerator")
 const CoachChat       = dynamic(() => import("@/components/CoachChat"),          { ssr: false, loading: CardSkeleton });
 const EnergyTank      = dynamic(() => import("@/components/EnergyTank"),         { ssr: false });
 const TrendsPanel     = dynamic(() => import("@/components/TrendsPanel"),        { ssr: false, loading: CardSkeleton });
+const WelcomeOverlay  = dynamic(() => import("@/components/WelcomeOverlay"),     { ssr: false });
 
 export default function Home() {
   const { state, logFood, setDailyMetrics } = useGravity();
@@ -56,6 +63,26 @@ export default function Home() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "profile" | "dietplan" | "coach" | "trends">("dashboard");
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // First-run onboarding: show the welcome once, only for brand-new users
+  // (no saved profile and not previously dismissed). Client-only, so it never
+  // causes a hydration mismatch. setState is wrapped in a helper to satisfy the
+  // React 19 set-state-in-effect lint rule.
+  useEffect(() => {
+    const reveal = () => setShowWelcome(true);
+    if (!loadOnboardedLocal() && !loadProfileLocal()) reveal();
+  }, []);
+
+  const dismissWelcome = () => {
+    setShowWelcome(false);
+    saveOnboardedLocal();
+  };
+  const welcomeToProfile = () => {
+    setShowWelcome(false);
+    saveOnboardedLocal();
+    setActiveTab("profile");
+  };
 
   // Load a saved profile: offline-first from localStorage, then sync from the
   // database if one is configured (server copy wins when present).
@@ -127,6 +154,7 @@ export default function Home() {
     setProfile(p);
     setActiveTab("dietplan");
     saveProfileLocal(p);
+    saveOnboardedLocal(); // a user with a profile has effectively onboarded
     const id = getDeviceId();
     if (id) {
       fetch("/api/profile", {
@@ -162,6 +190,11 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
+      {/* First-run welcome / onboarding */}
+      {showWelcome && (
+        <WelcomeOverlay onDismiss={dismissWelcome} onSetupProfile={welcomeToProfile} />
+      )}
+
       {/* Nudge layer */}
       <ContextualNudge
         vitalityScore={vitalityScore}
@@ -391,7 +424,7 @@ export default function Home() {
               <MacroBar label="Carbs"    current={nutrition.carbs}        target={targets.carbs}    pct={carbsPct}   unit="g"    color="#3b82f6" />
               <MacroBar label="Fat"      current={nutrition.fats}         target={targets.fats}    pct={fatsPct}    unit="g"    color="#ec4899" />
             </div>
-            {nutrition.logs.length > 0 && (
+            {nutrition.logs.length > 0 ? (
               <>
                 <div className="sep" />
                 <div className={styles.foodLog}>
@@ -403,6 +436,13 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+              </>
+            ) : (
+              <>
+                <div className="sep" />
+                <p className={styles.macroEmpty}>
+                  📸 No meals yet today — snap a photo in <strong>Log Food</strong> to start filling your macros.
+                </p>
               </>
             )}
           </div>

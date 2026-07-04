@@ -219,6 +219,20 @@
   font-style: italic;
 }
 
+/* Empty-state hint on the macro card before the first meal is logged. */
+.macroEmpty {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8b97ab;
+  margin: 0;
+  text-align: center;
+  padding: 4px 2px;
+}
+.macroEmpty strong {
+  color: var(--vibe-accent);
+  font-weight: 700;
+}
+
 .bentoBiowave {
   grid-column: span 6;
   grid-row: span 2;
