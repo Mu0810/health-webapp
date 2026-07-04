@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+/* Inter is self-hosted via next/font (see app/layout.tsx). Using it through
+   the --font-inter CSS variable avoids a render-blocking external stylesheet
+   request and the associated layout shift. */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -66,7 +68,7 @@ html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--font-inter), 'Inter', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
@@ -96,6 +98,9 @@ body::before {
   animation: aurora 24s ease-in-out infinite alternate;
   transition: opacity 1.4s ease, filter 1.4s ease;
   pointer-events: none;
+  /* Promote to its own compositor layer: it animates transform continuously,
+     so keeping the (expensive) blur cached as a texture avoids re-rasterising. */
+  will-change: transform;
 }
 
 /* Living Organism: a breathing energy glow whose colour, brightness, and pace
@@ -186,6 +191,11 @@ body::after {
   box-shadow: var(--shadow-card);
   transition: border-color 0.28s ease, background 0.28s ease,
               box-shadow 0.28s ease, transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  /* Isolate each card's layout + style recalculation. The dashboard re-renders
+     every few seconds as live biometrics tick; containment keeps that work
+     scoped to the changed card instead of the whole grid. (No `paint` — the
+     hover halo/box-shadow intentionally draws outside the card bounds.) */
+  contain: layout style;
 }
 
 /* Soft highlight along the top edge for a lit-glass feel */

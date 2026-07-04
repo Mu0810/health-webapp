@@ -1,5 +1,16 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+
+// Self-host Inter via next/font: eliminates the render-blocking
+// @import to fonts.googleapis.com, removes the extra network round-trip,
+// and prevents layout shift by supplying font metrics (display: swap).
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "Healthvibe — Proactive Health & Nutrition",
@@ -17,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <body>
         {/* Living Organism: a breathing energy glow behind all content, driven
             by the user's real-time vitality state (see [data-vibe] in globals). */}
