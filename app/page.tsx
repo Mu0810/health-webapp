@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { useGravity } from "@/lib/EAController";
 import { getDeviceId } from "@/lib/device";
+import { loadProfileLocal, saveProfileLocal } from "@/lib/localStore";
 import { StatusColor, StatusLabel, Colors } from "@/lib/ThemeConfig";
 import type { UserProfile } from "@/components/PersonalProfile";
 import styles from "./page.module.css";
@@ -50,19 +51,27 @@ export default function Home() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "profile" | "dietplan">("dashboard");
 
-  // Load a previously saved profile for this browser from the database.
+  // Load a saved profile: offline-first from localStorage, then sync from the
+  // database if one is configured (server copy wins when present).
   useEffect(() => {
     const id = getDeviceId();
-    if (!id) return;
     let cancelled = false;
     (async () => {
+      // Apply the locally-cached profile first for an instant load.
+      const local = loadProfileLocal();
+      if (!cancelled && local) setProfile(local);
+      if (!id) return;
       try {
         const res = await fetch(`/api/profile?userId=${encodeURIComponent(id)}`);
         if (!res.ok) return;
         const { profile: saved } = await res.json();
-        if (!cancelled && saved) setProfile(dbToProfile(saved));
+        if (!cancelled && saved) {
+          const mapped = dbToProfile(saved);
+          setProfile(mapped);
+          saveProfileLocal(mapped);
+        }
       } catch {
-        /* offline / no DB — start without a saved profile */
+        /* offline / no DB — the localStorage copy already applied above */
       }
     })();
     return () => {
@@ -70,10 +79,11 @@ export default function Home() {
     };
   }, []);
 
-  // Persist the profile whenever the user saves it.
+  // Persist the profile whenever the user saves it (localStorage + DB).
   const handleProfileSaved = (p: UserProfile) => {
     setProfile(p);
     setActiveTab("dietplan");
+    saveProfileLocal(p);
     const id = getDeviceId();
     if (id) {
       fetch("/api/profile", {
@@ -81,7 +91,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: id, ...p }),
       }).catch(() => {
-        /* offline / no DB — keep in-memory profile */
+        /* offline / no DB — localStorage already holds the profile */
       });
     }
   };

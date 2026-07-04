@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getEAStatus, getVitalityStatus, type EAStatus } from "./ThemeConfig";
 import { getDeviceId } from "./device";
+import { loadTodayLogsLocal, saveTodayLogsLocal } from "./localStore";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -135,49 +136,71 @@ export function useGravity() {
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deviceIdRef = useRef<string>("");
+  const logsRef = useRef<FoodEntry[]>([]);
 
-  // Hydrate today's food logs from the database on mount.
+  // Keep a ref of the current logs so logFood can persist without stale reads.
+  useEffect(() => {
+    logsRef.current = state.nutrition.logs;
+  }, [state.nutrition.logs]);
+
+  // Hydrate today's food logs: offline-first from localStorage, then sync from
+  // the database if one is configured (server copy wins when present).
   useEffect(() => {
     const id = getDeviceId();
     deviceIdRef.current = id;
-    if (!id) return;
     let cancelled = false;
 
-    (async () => {
-      try {
-        const res = await fetch(`/api/logs?userId=${encodeURIComponent(id)}`);
-        if (!res.ok) return;
-        const { logs } = await res.json();
-        if (cancelled || !Array.isArray(logs)) return;
+    const applyLogs = (logs: FoodEntry[]) => {
+      setState((prev) => {
+        const totals = totalsFromLogs(logs);
+        const ea = calcEA(totals.energyIntake, prev.biometrics.activeBurn, prev.ffm);
+        const vs = calcVitalityScore(ea, prev.sleepHours);
+        return {
+          ...prev,
+          nutrition: { ...totals, logs },
+          ea: Math.round(ea * 10) / 10,
+          eaStatus: getEAStatus(ea),
+          vitalityScore: vs,
+          vitalityStatus: getVitalityStatus(vs),
+        };
+      });
+    };
 
-        const mapped: FoodEntry[] = logs.map((l: Record<string, unknown>) => ({
-          id: String(l.id),
-          name: String(l.name),
-          calories: Number(l.calories),
-          protein: Number(l.protein),
-          carbs: Number(l.carbs),
-          fats: Number(l.fats),
-          glycemicIndex: l.glycemicIndex == null ? undefined : Number(l.glycemicIndex),
-          timestamp: new Date(String(l.timestamp)).getTime(),
-        }));
+    // 1) Show locally-persisted logs immediately.
+    const local = loadTodayLogsLocal();
+    if (local.length) {
+      logsRef.current = local;
+      applyLogs(local);
+    }
 
-        setState((prev) => {
-          const totals = totalsFromLogs(mapped);
-          const ea = calcEA(totals.energyIntake, prev.biometrics.activeBurn, prev.ffm);
-          const vs = calcVitalityScore(ea, prev.sleepHours);
-          return {
-            ...prev,
-            nutrition: { ...totals, logs: mapped },
-            ea: Math.round(ea * 10) / 10,
-            eaStatus: getEAStatus(ea),
-            vitalityScore: vs,
-            vitalityStatus: getVitalityStatus(vs),
-          };
-        });
-      } catch {
-        // Offline / no DB configured — keep in-memory state.
-      }
-    })();
+    // 2) Sync from the server when a DB is configured.
+    if (id) {
+      (async () => {
+        try {
+          const res = await fetch(`/api/logs?userId=${encodeURIComponent(id)}`);
+          if (!res.ok) return;
+          const { logs } = await res.json();
+          if (cancelled || !Array.isArray(logs) || logs.length === 0) return;
+
+          const mapped: FoodEntry[] = logs.map((l: Record<string, unknown>) => ({
+            id: String(l.id),
+            name: String(l.name),
+            calories: Number(l.calories),
+            protein: Number(l.protein),
+            carbs: Number(l.carbs),
+            fats: Number(l.fats),
+            glycemicIndex: l.glycemicIndex == null ? undefined : Number(l.glycemicIndex),
+            timestamp: new Date(String(l.timestamp)).getTime(),
+          }));
+
+          logsRef.current = mapped;
+          saveTodayLogsLocal(mapped);
+          applyLogs(mapped);
+        } catch {
+          // Offline / no DB — the localStorage copy already applied above.
+        }
+      })();
+    }
 
     return () => {
       cancelled = true;
@@ -228,7 +251,12 @@ export function useGravity() {
       timestamp: Date.now(),
     };
 
-    // Persist to the database (fire-and-forget; UI updates optimistically below).
+    // Offline-first: persist to localStorage immediately.
+    const nextLogs = [newEntry, ...logsRef.current];
+    logsRef.current = nextLogs;
+    saveTodayLogsLocal(nextLogs);
+
+    // Write-through to the database when configured (fire-and-forget).
     const id = deviceIdRef.current || getDeviceId();
     if (id) {
       fetch("/api/logs", {
@@ -236,7 +264,7 @@ export function useGravity() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: id, ...entry }),
       }).catch(() => {
-        /* offline / no DB — keep optimistic state */
+        /* offline / no DB — localStorage already holds the entry */
       });
     }
 
