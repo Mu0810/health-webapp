@@ -10,9 +10,9 @@
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.03);
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
 }
-.saved:hover { background: rgba(255,255,255,0.06); }
+.saved:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.16); transform: translateY(-2px); }
 
 .savedLeft { display: flex; align-items: center; gap: 14px; }
 
@@ -20,6 +20,7 @@
   width: 42px; height: 42px; border-radius: 50%;
   background: linear-gradient(135deg, #0d9488, #0891b2);
   display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 6px 16px -4px rgba(13,148,136,0.65);
 }
 .avatar { font-size: 18px; font-weight: 700; color: #fff; }
 
@@ -64,7 +65,11 @@
   transition: border-color 0.15s;
   width: 100%;
 }
-.input:focus, .select:focus { border-color: #0d9488; }
+.input:focus, .select:focus {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.16);
+  background: rgba(255,255,255,0.07);
+}
 .select option { background: #1e293b; }
 
 /* Toggle buttons (gender) */
@@ -72,12 +77,15 @@
 .toggleBtn {
   flex: 1; padding: 9px 0;
   border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
-  background: transparent; color: #64748b; font-size: 12px; cursor: pointer;
+  background: transparent; color: #94a3b8; font-size: 12px; cursor: pointer;
   transition: all 0.15s;
 }
-.toggleActive {
-  background: rgba(13,148,136,0.18);
+.toggleBtn:hover { color: #cbd5e1; background: rgba(255,255,255,0.05); }
+.toggleBtn:active { transform: scale(0.97); }
+.toggleActive, .toggleActive:hover {
+  background: rgba(13,148,136,0.2);
   border-color: #0d9488; color: #5eead4;
+  box-shadow: 0 0 14px -3px rgba(13,148,136,0.55);
 }
 
 /* Goal row */
@@ -85,12 +93,15 @@
 .goalBtn {
   flex: 1; padding: 9px 0;
   border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
-  background: transparent; color: #64748b; font-size: 12px; cursor: pointer;
+  background: transparent; color: #94a3b8; font-size: 12px; cursor: pointer;
   transition: all 0.15s; text-align: center;
 }
-.goalActive {
-  background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(6,182,212,0.2));
+.goalBtn:hover { color: #cbd5e1; background: rgba(255,255,255,0.05); }
+.goalBtn:active { transform: scale(0.97); }
+.goalActive, .goalActive:hover {
+  background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(6,182,212,0.22));
   border-color: #10b981; color: #34d399;
+  box-shadow: 0 0 14px -3px rgba(16,185,129,0.55);
 }
 
 /* Diet row */
@@ -98,11 +109,14 @@
 .dietBtn {
   padding: 6px 12px;
   border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-  background: transparent; color: #64748b; font-size: 11px; cursor: pointer;
+  background: transparent; color: #94a3b8; font-size: 11px; cursor: pointer;
   transition: all 0.15s;
 }
-.dietActive {
-  background: rgba(139,92,246,0.18); border-color: #8b5cf6; color: #c4b5fd;
+.dietBtn:hover { color: #cbd5e1; background: rgba(255,255,255,0.05); }
+.dietBtn:active { transform: scale(0.96); }
+.dietActive, .dietActive:hover {
+  background: rgba(139,92,246,0.2); border-color: #8b5cf6; color: #c4b5fd;
+  box-shadow: 0 0 14px -3px rgba(139,92,246,0.5);
 }
 
 /* Live preview */
@@ -113,9 +127,14 @@
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 14px;
 }
-.previewItem { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.previewItem {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 4px 2px; border-radius: 10px;
+  transition: background 0.15s;
+}
+.previewItem:hover { background: rgba(255,255,255,0.04); }
 .previewLabel { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; }
-.previewValue { font-size: 16px; font-weight: 700; color: #f1f5f9; }
+.previewValue { font-size: 16px; font-weight: 700; color: #f1f5f9; text-shadow: 0 0 16px currentColor; }
 .previewSub   { font-size: 9px; font-weight: 400; color: #64748b; }
 
 /* Save button */
@@ -124,6 +143,9 @@
   background: linear-gradient(135deg, #0d9488, #0891b2);
   border: none; border-radius: 14px;
   color: #fff; font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+  cursor: pointer;
+  box-shadow: 0 8px 24px -8px rgba(13,148,136,0.75);
+  transition: filter 0.18s, transform 0.12s, box-shadow 0.18s;
 }
-.saveBtn:hover { opacity: 0.88; transform: translateY(-1px); }
+.saveBtn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 14px 32px -8px rgba(13,148,136,0.9); }
+.saveBtn:active { transform: translateY(0) scale(0.99); }
