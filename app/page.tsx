@@ -35,15 +35,18 @@ function dbToProfile(p: Record<string, unknown>): UserProfile {
   };
 }
 
+// Shimmer placeholder shown while a lazy widget loads (avoids blank-card flash).
+const CardSkeleton = () => <div className="skeleton" aria-hidden="true" />;
+
 // Dynamic imports with SSR disabled for client-heavy widgets
-const VisionLogger    = dynamic(() => import("@/components/VisionLogger"),       { ssr: false });
-const BiometricWave   = dynamic(() => import("@/components/BiometricWave"),      { ssr: false });
-const VitalityRing    = dynamic(() => import("@/components/VitalityRing"),       { ssr: false });
-const SmartMenu       = dynamic(() => import("@/components/SmartMenu"),          { ssr: false });
+const VisionLogger    = dynamic(() => import("@/components/VisionLogger"),       { ssr: false, loading: CardSkeleton });
+const BiometricWave   = dynamic(() => import("@/components/BiometricWave"),      { ssr: false, loading: CardSkeleton });
+const VitalityRing    = dynamic(() => import("@/components/VitalityRing"),       { ssr: false, loading: CardSkeleton });
+const SmartMenu       = dynamic(() => import("@/components/SmartMenu"),          { ssr: false, loading: CardSkeleton });
 const ContextualNudge = dynamic(() => import("@/components/ContextualNudge"),    { ssr: false });
-const PersonalProfile = dynamic(() => import("@/components/PersonalProfile"),    { ssr: false });
-const DietPlanGenerator = dynamic(() => import("@/components/DietPlanGenerator"), { ssr: false });
-const CoachChat       = dynamic(() => import("@/components/CoachChat"),          { ssr: false });
+const PersonalProfile = dynamic(() => import("@/components/PersonalProfile"),    { ssr: false, loading: CardSkeleton });
+const DietPlanGenerator = dynamic(() => import("@/components/DietPlanGenerator"), { ssr: false, loading: CardSkeleton });
+const CoachChat       = dynamic(() => import("@/components/CoachChat"),          { ssr: false, loading: CardSkeleton });
 
 export default function Home() {
   const { state, logFood } = useGravity();
