@@ -52,6 +52,18 @@ export function saveProfileLocal(profile: UserProfile): void {
   safeSet(PROFILE_KEY, profile);
 }
 
+// ── First-run onboarding flag ──────────────────────────────────────────────
+const ONBOARDED_KEY = "hv_onboarded";
+
+/** True once the user has seen (and dismissed) the first-run welcome. */
+export function loadOnboardedLocal(): boolean {
+  return safeGet<boolean>(ONBOARDED_KEY) === true;
+}
+
+export function saveOnboardedLocal(): void {
+  safeSet(ONBOARDED_KEY, true);
+}
+
 // ── Food logs (today only) ───────────────────────────────────────────────
 export function loadTodayLogsLocal(): FoodEntry[] {
   const all = safeGet<FoodEntry[]>(LOGS_KEY) ?? [];
