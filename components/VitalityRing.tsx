@@ -5,6 +5,7 @@
 
 import type { EAStatus } from "@/lib/ThemeConfig";
 import { StatusColor, StatusLabel } from "@/lib/ThemeConfig";
+import { useCountUp } from "@/lib/useCountUp";
 import styles from "./VitalityRing.module.css";
 
 interface Props {
@@ -30,6 +31,9 @@ export default function VitalityRing({ score, ea, status, eaStatus }: Props) {
   const trackColor = "rgba(255,255,255,0.06)";
 
   const rotation = -90; // start from top
+
+  // Animate the headline score as it changes.
+  const animScore = useCountUp(score, { decimals: 1 });
 
   return (
     <div className={styles.wrapper}>
@@ -74,7 +78,7 @@ export default function VitalityRing({ score, ea, status, eaStatus }: Props) {
 
         {/* Center score */}
         <text x={CX} y={CY - 8} textAnchor="middle" className={styles.scoreText} fill={color}>
-          {score.toFixed(1)}
+          {animScore.toFixed(1)}
         </text>
         <text x={CX} y={CY + 10} textAnchor="middle" className={styles.labelText} fill={color} opacity="0.7">
           {label}

@@ -17,6 +17,8 @@ import {
 } from "@/lib/localStore";
 import { StatusColor, StatusLabel, Colors } from "@/lib/ThemeConfig";
 import type { UserProfile } from "@/components/PersonalProfile";
+import CountUp from "@/components/CountUp";
+import TiltCard from "@/components/TiltCard";
 import styles from "./page.module.css";
 
 /** Map a persisted DB profile row onto the client UserProfile type. */
@@ -56,6 +58,7 @@ const CoachChat       = dynamic(() => import("@/components/CoachChat"),         
 const EnergyTank      = dynamic(() => import("@/components/EnergyTank"),         { ssr: false });
 const TrendsPanel     = dynamic(() => import("@/components/TrendsPanel"),        { ssr: false, loading: CardSkeleton });
 const WelcomeOverlay  = dynamic(() => import("@/components/WelcomeOverlay"),     { ssr: false });
+const CelebrationBurst = dynamic(() => import("@/components/CelebrationBurst"),  { ssr: false });
 
 export default function Home() {
   const { state, logFood, setDailyMetrics } = useGravity();
@@ -195,6 +198,9 @@ export default function Home() {
         <WelcomeOverlay onDismiss={dismissWelcome} onSetupProfile={welcomeToProfile} />
       )}
 
+      {/* Confetti when vitality crosses into the optimal (green) zone */}
+      <CelebrationBurst status={vitalityStatus} />
+
       {/* Nudge layer */}
       <ContextualNudge
         vitalityScore={vitalityScore}
@@ -263,33 +269,33 @@ export default function Home() {
                 <div className={`glass-card ${styles.statCard}`}>
                   <p className={styles.statCardLabel}>BMI</p>
                   <p className={styles.statCardValue} style={{ color: profile.bmi < 18.5 ? "#3b82f6" : profile.bmi < 25 ? "#10b981" : profile.bmi < 30 ? "#f59e0b" : "#ef4444" }}>
-                    {profile.bmi}
+                    <CountUp value={profile.bmi} decimals={1} />
                   </p>
                   <p className={styles.statCardSub}>{profile.bmi < 18.5 ? "Underweight" : profile.bmi < 25 ? "Normal" : profile.bmi < 30 ? "Overweight" : "Obese"}</p>
                 </div>
                 <div className={`glass-card ${styles.statCard}`}>
                   <p className={styles.statCardLabel}>BMR</p>
-                  <p className={styles.statCardValue} style={{ color: "#818cf8" }}>{profile.bmr}</p>
+                  <p className={styles.statCardValue} style={{ color: "#818cf8" }}><CountUp value={profile.bmr} /></p>
                   <p className={styles.statCardSub}>kcal/day at rest</p>
                 </div>
                 <div className={`glass-card ${styles.statCard}`}>
                   <p className={styles.statCardLabel}>TDEE</p>
-                  <p className={styles.statCardValue} style={{ color: "#f59e0b" }}>{profile.tdee}</p>
+                  <p className={styles.statCardValue} style={{ color: "#f59e0b" }}><CountUp value={profile.tdee} /></p>
                   <p className={styles.statCardSub}>kcal/day active</p>
                 </div>
                 <div className={`glass-card ${styles.statCard}`}>
                   <p className={styles.statCardLabel}>Target</p>
-                  <p className={styles.statCardValue} style={{ color: "#10b981" }}>{profile.targetCalories}</p>
+                  <p className={styles.statCardValue} style={{ color: "#10b981" }}><CountUp value={profile.targetCalories} /></p>
                   <p className={styles.statCardSub}>kcal/day goal</p>
                 </div>
                 <div className={`glass-card ${styles.statCard}`}>
                   <p className={styles.statCardLabel}>Fat-Free Mass</p>
-                  <p className={styles.statCardValue} style={{ color: "#0d9488" }}>{profile.ffm}kg</p>
+                  <p className={styles.statCardValue} style={{ color: "#0d9488" }}><CountUp value={profile.ffm} decimals={1} suffix="kg" /></p>
                   <p className={styles.statCardSub}>muscle + bone</p>
                 </div>
                 <div className={`glass-card ${styles.statCard}`}>
                   <p className={styles.statCardLabel}>Protein Target</p>
-                  <p className={styles.statCardValue} style={{ color: "#10b981" }}>{profile.targetProtein}g</p>
+                  <p className={styles.statCardValue} style={{ color: "#10b981" }}><CountUp value={profile.targetProtein} suffix="g" /></p>
                   <p className={styles.statCardSub}>{(profile.targetProtein / profile.ffm).toFixed(1)}g / kg FFM</p>
                 </div>
               </div>
@@ -369,7 +375,7 @@ export default function Home() {
         <div className="bento-grid">
 
           {/* 1. Vitality Ring */}
-          <div className={`glass-card ${styles.bentoVitality}`}>
+          <TiltCard className={`glass-card ${styles.bentoVitality}`}>
             <VitalityRing score={vitalityScore} ea={ea} status={vitalityStatus} eaStatus={eaStatus} />
             <div className={styles.vitalityMeta}>
               <StatRow label="EA Score"  value={`${ea} kcal/kg`}              color={eaColor} />
@@ -397,10 +403,10 @@ export default function Home() {
                 🧬 Set Up Profile
               </button>
             )}
-          </div>
+          </TiltCard>
 
           {/* 2. Biometric Wave */}
-          <div className={`glass-card ${styles.bentoBiowave}`}>
+          <TiltCard className={`glass-card ${styles.bentoBiowave}`}>
             <BiometricWave data={biometrics.glucoseHistory} foodMarks={foodMarks} />
             <div className={styles.bentoStatRow}>
               <MiniStat label="Glucose"     value={`${Math.round(biometrics.glucose)}`}    unit="mg/dL" alert={biometrics.glucose > 140} />
@@ -408,15 +414,15 @@ export default function Home() {
               <MiniStat label="HRV"         value={`${Math.round(biometrics.hrv)}`}        unit="ms" />
             </div>
             <p className={styles.demoNote}>◦ Glucose &amp; HRV are simulated demo sensors — connect a wearable/CGM to make them real</p>
-          </div>
+          </TiltCard>
 
           {/* 3. Vision Logger */}
-          <div className={`glass-card ${styles.bentoVision}`}>
+          <TiltCard className={`glass-card ${styles.bentoVision}`}>
             <VisionLogger onFoodLogged={logFood} />
-          </div>
+          </TiltCard>
 
           {/* 4. Macro Tracker */}
-          <div className={`glass-card ${styles.bentoMacros}`}>
+          <TiltCard className={`glass-card ${styles.bentoMacros}`}>
             <h3 className={styles.cardTitle}>Daily Macros</h3>
             <div className={styles.macroList}>
               <MacroBar label="Calories" current={nutrition.energyIntake} target={targets.calories} pct={calPct}     unit="kcal" color="#f59e0b" />
@@ -445,10 +451,10 @@ export default function Home() {
                 </p>
               </>
             )}
-          </div>
+          </TiltCard>
 
           {/* 5. EA Formula */}
-          <div className={`glass-card ${styles.bentoEA}`}>
+          <TiltCard className={`glass-card ${styles.bentoEA}`}>
             <h3 className={styles.cardTitle}>Energy Availability</h3>
             <div className={styles.eaBody}>
               <EnergyTank ea={ea} status={eaStatus} />
@@ -461,7 +467,7 @@ export default function Home() {
                   </div>
                   <span className={styles.eaEquals}>= </span>
                   <span className={styles.eaResult} style={{ color: eaColor }}>
-                    {ea}<span className={styles.eaUnit}> kcal/kg/d</span>
+                    <CountUp value={ea} decimals={1} /><span className={styles.eaUnit}> kcal/kg/d</span>
                   </span>
                 </div>
                 <div className={styles.eaComponents}>
@@ -476,12 +482,12 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
+          </TiltCard>
 
           {/* 6. Smart Menu */}
-          <div className={`glass-card ${styles.bentoMenu}`}>
+          <TiltCard className={`glass-card ${styles.bentoMenu}`}>
             <SmartMenu remainingCalories={remainingCal} remainingProtein={remainingProtein} />
-          </div>
+          </TiltCard>
 
         </div>
       )}

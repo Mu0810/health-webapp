@@ -1,0 +1,38 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.piece {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  border-radius: 2px;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: burst 1200ms cubic-bezier(0.15, 0.85, 0.3, 1) forwards;
+  box-shadow: 0 0 8px currentColor;
+}
+
+@keyframes burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1) rotate(var(--rot));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer { display: none; }
+}

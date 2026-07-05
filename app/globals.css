@@ -232,7 +232,15 @@ body::after {
   border-radius: 22px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.14);
-  transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1),
+  /* Composed transform: pointer tilt (--rx/--ry, set by TiltCard) + hover
+     lift (--ty/--sc). All default to a no-op so untouched cards are flat. */
+  transform:
+    perspective(950px)
+    rotateX(var(--rx, 0deg))
+    rotateY(var(--ry, 0deg))
+    translateY(var(--ty, 0px))
+    scale(var(--sc, 1));
+  transition: transform 0.25s cubic-bezier(0.2,0.8,0.2,1),
               box-shadow 0.4s ease, border-color 0.4s ease;
   /* Scope style/layout recalc to the changed card as live metrics tick.
      (No `paint` — the hover halo/border ring intentionally draw outside bounds.) */
@@ -283,7 +291,8 @@ body::after {
 
 .glass-card:hover {
   border-color: var(--border-strong);
-  transform: translateY(-5px) scale(1.008);
+  --ty: -5px;
+  --sc: 1.008;
   box-shadow: var(--shadow-card-hover),
               inset 0 1px 0 rgba(255,255,255,0.2),
               0 0 60px -18px var(--vibe-glow);
